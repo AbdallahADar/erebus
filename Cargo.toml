@@ -1,0 +1,19 @@
+[workspace]
+members = [
+    "crates/erebus-core",
+    "crates/erebus-io",
+#    "crates/erebus-expr",
+    "crates/erebus-vector",
+#    "crates/erebus-table",
+#    "crates/erebus-matrix",
+#    "crates/erebus-portfolio",
+#    "crates/erebus-stats"
+]
+
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+authors = ["Abdallah Dar <dar.abdallah.a@gmail.com>"]
+description = "Erebus"

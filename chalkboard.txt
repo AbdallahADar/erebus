@@ -1,0 +1,77 @@
+Keep track of ideas here:
+
+No set format, free flowing ideas.
+
+-- Latest stopping point: Affine funcs
+-- Next step: With validity versions starting power
+-- TODO: Indexing tests
+
+> Logit
+> Expit
+> Softplus
+> Softmax
+[-] > Flip sign
+[-] > Round up
+> Eq
+> Neq
+> Exp10
+> Trig functions
+
+> Cumulative functions aka accumulate
+
+> Performance metrics
+
+> IQR
+> Weighted reductions
+> Range
+
+> Relu (and another alias)
+> Relu6 aka ReluN
+> Leaky relu
+> Interp
+
+> Nextpow
+> Prevpow
+> Ndigits
+
+> Inverse divide x/y becomes y/x
+> Reciprocal
+
+[-] > Concatenation of vectors
+
+[-] > L1 Norm
+[-] > L2 Norm
+[-] > Any
+[-] > All
+> Xor reduce
+[-] > Log sum exp
+> Interesting functions from scipy to emulate: https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.logsumexp.html
+[-] > Null ratio/percentage
+[-] > Count true
+
+> Reduce
+> Accumulate
+
+[-] > Sort (Look into radix sort)
+> Reindex (separate from reorder)
+
+> Range constructor start end
+> Range constructor start end step
+> Range constructor by log range
+
+> Upper
+> Lower
+> Capitalize (only first letter uppercase for all words)
+> Reverse
+
+> Matrix structure
+> Tree structure
+
+> Simulations module
+
+> Zipped Object aka Interleaved object
+> Dynamic type collapsing aka CompactInt
+> String to Int mapping with adaptive dict width
+> Function backed columns
+> Undo operations
+> Copulas

@@ -1,0 +1,1431 @@
+// === Imports ===
+use erebus_vector::prelude::*;
+
+// === Tests ===
+
+fn vd_i64(data: Vec<i64>, valid: Vec<bool>) -> VectorData<i64> {
+    VectorData::from_vec(data, valid.into_iter().collect()).unwrap()
+}
+
+fn vd_f64(data: Vec<f64>, valid: Vec<bool>) -> VectorData<f64> {
+    VectorData::from_vec(data, valid.into_iter().collect()).unwrap()
+}
+
+fn vd_bool(v: Vec<bool>, valid: Vec<bool>) -> VectorData<bool> {
+    VectorData::from_vec(v, BitVec::from_iter(valid)).unwrap()
+}
+
+fn assert_vec_approx(a: &[f64], b: &[f64]) {
+    assert_eq!(a.len(), b.len());
+    for (x, y) in a.iter().zip(b.iter()) {
+        assert!((x - y).abs() < 1e-12, "expected {y}, got {x}");
+    }
+}
+
+
+#[test]
+fn test_abs_i64_nulls_basic() {
+    // data: [-5, 3, -1, 0]
+    // valid: [ 0, 1,  0, 1 ]
+    let v = vd_i64(vec![-5, 3, -1, 0], vec![false, true, false, true]);
+
+    let out = v.abs();
+
+    assert_eq!(out.data, vec![5, 3, 1, 0]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1, 0, 1]);
+}
+
+#[test]
+fn test_abs_i64_nulls_inplace() {
+    let mut v = vd_i64(vec![-5, 3, -1, 0], vec![false, true, false, true]);
+
+    v.abs_inplace();
+
+    assert_eq!(v.data, vec![5, 3, 1, 0]);
+    assert_eq!(v.validity.to_vec(), bitvec![0, 1, 0, 1]); // unchanged
+}
+
+#[test]
+fn test_abs_i64_nulls_range_slice_only() {
+    // Slice [1,3)
+    let v = vd_i64(vec![-5, 3, -1, 0], vec![false, true, false, true]);
+
+    let out = v.abs_range(1, 3, false);
+
+    assert_eq!(out.data, vec![3, 1]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0]);
+}
+
+#[test]
+fn test_abs_i64_nulls_range_full() {
+    // original:
+    //  data: [-5, 3, -1, 0]
+    // valid: [ 0, 1,  0, 1 ]
+    //
+    // apply abs to indices 1..3 → [3,1]
+    //
+    // expected full reconstruction:
+    //  data: [-5, 3, 1, 0]
+    // valid: [ 0, 1, 0, 1 ]
+    let v = vd_i64(vec![-5, 3, -1, 0], vec![false, true, false, true]);
+
+    let out = v.abs_range(1, 3, true);
+
+    assert_eq!(out.data, vec![-5, 3, 1, 0]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1, 0, 1]);
+}
+
+#[test]
+fn test_abs_f64_nulls_basic() {
+    let v = vd_f64(vec![-2.5, 3.0, -0.4, 0.0], vec![true, false, true, false]);
+
+    let out = v.abs();
+
+    assert_eq!(out.data, vec![2.5, 3.0, 0.4, 0.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1, 0]);
+}
+
+#[test]
+fn test_abs_f64_nulls_inplace() {
+    let mut v = vd_f64(vec![-2.5, 3.0, -0.4, 0.0], vec![true, false, true, false]);
+
+    v.abs_inplace();
+
+    assert_eq!(v.data, vec![2.5, 3.0, 0.4, 0.0]);
+    assert_eq!(v.validity.to_vec(), bitvec![1, 0, 1, 0]);
+}
+
+#[test]
+fn test_abs_f64_nulls_range_slice_only() {
+    let v = vd_f64(vec![-2.5, 3.0, -0.4, 0.0], vec![true, false, true, false]);
+
+    let out = v.abs_range(1, 3, false);
+
+    assert_eq!(out.data, vec![3.0, 0.4]);       // transformed only
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1]); // slice validity preserved
+}
+
+#[test]
+fn test_abs_f64_nulls_range_full() {
+    let v = vd_f64(vec![-2.5, 3.0, -0.4, 0.0], vec![true, false, true, false]);
+
+    // Expected:
+    // data: [-2.5, 3.0, 0.4, 0.0]
+    // valid: [1, 0, 1, 0]
+    let out = v.abs_range(1, 3, true);
+
+    assert_eq!(out.data, vec![-2.5, 3.0, 0.4, 0.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1, 0]);
+}
+
+#[test]
+fn test_exp_i64_owned() {
+    let v = vd_i64(vec![0, 1, -1], vec![true, true, true]);
+
+    let out = v.exp();
+
+    let expected = vec![
+        (0.0_f64).exp(),
+        (1.0_f64).exp(),
+        (-1.0_f64).exp(),
+    ];
+
+    assert_eq!(out.data, expected);
+    assert_eq!(out.validity.to_vec(), bitvec![1,1,1]);
+}
+
+#[test]
+fn test_exp_i64_with_nulls() {
+    let v = vd_i64(vec![0, 1, -1], vec![true, false, true]);
+
+    let out = v.exp();
+
+    let expected = vec![
+        (0.0_f64).exp(),
+        (1.0_f64).exp(),   // value computed but validity = 0
+        (-1.0_f64).exp(),
+    ];
+
+    assert_eq!(out.data, expected);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_exp_i64_range() {
+    let v = vd_i64(vec![10, 20, 30, 40], vec![true; 4]);
+
+    // only transform [1,3), but return full = true
+    let out = v.exp_range(1, 3, true);
+
+    let expected = vec![
+        10.0_f64,              // unchanged (converted)
+        (20.0_f64).exp(),      // transformed
+        (30.0_f64).exp(),      // transformed
+        40.0_f64,              // unchanged (converted)
+    ];
+
+    assert_eq!(out.data, expected);
+}
+
+#[test]
+fn test_exp_f64_owned() {
+    let v = vd_f64(vec![0.0, 1.0, -1.0], vec![true; 3]);
+
+    let out = v.exp();
+
+    assert_eq!(out.data, vec![
+        0.0_f64.exp(),
+        1.0_f64.exp(),
+        (-1.0_f64).exp()
+    ]);
+}
+
+#[test]
+fn test_exp_f64_inplace() {
+    let mut v = vd_f64(vec![0.0, 2.0], vec![true; 2]);
+
+    v.exp_inplace();
+
+    assert_eq!(v.data, vec![
+        0.0_f64.exp(),
+        2.0_f64.exp()
+    ]);
+}
+
+#[test]
+fn test_exp_f64_with_nulls() {
+    let mut v = vd_f64(vec![0.0, 2.0, -1.0], vec![true, false, true]);
+
+    let out = v.exp();
+
+    assert_eq!(out.data, vec![
+        0.0_f64.exp(),
+        2.0_f64.exp(),
+        (-1.0_f64).exp()
+    ]);
+
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_exp_f64_range() {
+    let v = vd_f64(vec![1.0, 2.0, 3.0], vec![true; 3]);
+
+    let out = v.exp_range(1, 3, true);
+
+    assert_eq!(out.data, vec![
+        1.0,               // unchanged
+        2.0_f64.exp(),     // transformed
+        3.0_f64.exp(),     // transformed
+    ]);
+}
+
+#[test]
+fn test_exp_m1_i64() {
+    let v = vd_i64(vec![0, 1, -1], vec![true; 3]);
+
+    let out = v.exp_m1();
+
+    assert_eq!(out.data, vec![
+        0.0_f64.exp_m1(),
+        1.0_f64.exp_m1(),
+        (-1.0_f64).exp_m1()
+    ]);
+}
+
+#[test]
+fn test_exp_m1_f64() {
+    let v = vd_f64(vec![0.0, 0.5, -0.5], vec![true; 3]);
+
+    let out = v.exp_m1();
+
+    assert_eq!(out.data, vec![
+        0.0_f64.exp_m1(),
+        0.5_f64.exp_m1(),
+        (-0.5_f64).exp_m1()
+    ]);
+}
+
+#[test]
+fn test_exp_m1_f64_inplace() {
+    let mut v = vd_f64(vec![0.0, 1.0], vec![true; 2]);
+
+    v.exp_m1_inplace();
+
+    assert_eq!(v.data, vec![
+        0.0_f64.exp_m1(),
+        1.0_f64.exp_m1(),
+    ]);
+}
+
+#[test]
+fn test_exp_m1_f64_range() {
+    let v = vd_f64(vec![10.0, 20.0, 30.0], vec![true; 3]);
+
+    let out = v.exp_m1_range(1, 3, true);
+
+    assert_eq!(out.data, vec![
+        10.0,
+        20.0_f64.exp_m1(),
+        30.0_f64.exp_m1(),
+    ]);
+}
+
+
+#[test]
+fn test_int_round_owned() {
+    let v = vd_i64(vec![-3, 2, 0, 5], vec![true, false, true, true]);
+
+    assert_eq!(v.ceil().data,  vec![-3,2,0,5]);
+    assert_eq!(v.floor().data, vec![-3,2,0,5]);
+    assert_eq!(v.round().data, vec![-3,2,0,5]);
+
+    assert_eq!(v.trunc().data, vec![-3,2,0,5]);
+    assert_eq!(v.fract().data, vec![0,0,0,0]);
+
+    assert_eq!(v.signum().data, vec![-1,1,0,1]);
+    assert_eq!(v.validity.to_vec(), bitvec![1,0,1,1]);
+}
+
+#[test]
+fn test_int_round_inplace() {
+    let mut v = vd_i64(vec![-3, 2, 0, 5], vec![true, false, true, true]);
+
+    v.signum_inplace();
+
+    assert_eq!(v.data, vec![-1, 1, 0, 1]);
+    assert_eq!(v.validity.to_vec(), bitvec![1,0,1,1]);
+}
+
+#[test]
+fn test_float_round_owned() {
+    let v = vd_f64(vec![-2.7, 3.2, 0.0], vec![true,false,true]);
+
+    assert_eq!(v.ceil().data,  vec![-2.0, 4.0, 0.0]);
+    assert_eq!(v.floor().data, vec![-3.0, 3.0, 0.0]);
+    assert_eq!(v.round().data, vec![-3.0, 3.0, 0.0]);
+
+    assert_eq!(v.trunc().data, vec![-2.0, 3.0, 0.0]);
+    assert_vec_approx(&v.fract().data, &[-0.7, 0.2, 0.0]); // Approx used due to floating point error
+
+    assert_eq!(v.roundup().data, vec![-2.0, 4.0, 0.0]);
+
+    assert_eq!(v.signum().data, vec![-1.0, 1.0, 0.0]);
+}
+
+#[test]
+fn test_i64_floor_range_slice_only() {
+    let v = vd_i64(vec![-3, 2, 7, -1], vec![true, false, true, true]);
+
+    // Apply floor to indices [1,3) → [2, 7]
+    let out = v.floor_range(1, 3, false);
+
+    assert_eq!(out.data, vec![2, 7]);            // slice transformed (though floor(x)=x)
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1]);
+}
+
+#[test]
+fn test_i64_floor_range_full() {
+    let v = vd_i64(vec![-3, 2, 7, -1], vec![true, false, true, true]);
+
+    // full reconstruction
+    let out = v.floor_range(1, 3, true);
+
+    assert_eq!(out.data, vec![-3, 2, 7, -1]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1, 1]);
+}
+
+#[test]
+fn test_i64_round_range_full() {
+    let v = vd_i64(vec![-3, 2, 7, -1], vec![true, true, false, true]);
+
+    let out = v.round_range(0, 2, true);
+
+    assert_eq!(out.data, vec![-3, 2, 7, -1]); // unchanged for ints
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 0, 1]);
+}
+
+#[test]
+fn test_i64_trunc_range_slice_only() {
+    let v = vd_i64(vec![5, -4, 9], vec![true, false, true]);
+
+    let out = v.trunc_range(1, 3, false);
+
+    assert_eq!(out.data, vec![-4, 9]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1]);
+}
+
+#[test]
+fn test_i64_fract_range_slice_only() {
+    let v = vd_i64(vec![10, -3, 7], vec![true, true, false]);
+
+    let out = v.fract_range(0, 2, false);
+
+    assert_eq!(out.data, vec![0, 0]);  // always zero for ints
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1]);
+}
+
+#[test]
+fn test_i64_signum_range_full() {
+    let v = vd_i64(vec![-4, 0, 9, -2], vec![true, false, true, true]);
+
+    let out = v.signum_range(1, 4, true);
+
+    assert_eq!(out.data, vec![-4, 0, 1, -1]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1, 1]);
+}
+
+#[test]
+fn test_f64_floor_range_slice_only() {
+    let v = vd_f64(vec![-2.7, 3.2, 5.9, 1.0], vec![true, false, true, true]);
+
+    let out = v.floor_range(1, 3, false);
+
+    assert_eq!(out.data, vec![3.0, 5.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1]);
+}
+
+#[test]
+fn test_f64_floor_range_full() {
+    let v = vd_f64(vec![-2.7, 3.2, 5.9, 1.0], vec![true, false, true, true]);
+
+    let out = v.floor_range(1, 3, true);
+
+    assert_eq!(out.data, vec![-2.7, 3.0, 5.0, 1.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1, 1]);
+}
+
+#[test]
+fn test_f64_round_range_slice_only() {
+    let v = vd_f64(vec![-2.7, 3.2, 5.9], vec![true, true, false]);
+
+    let out = v.round_range(0, 2, false);
+
+    assert_eq!(out.data, vec![-3.0, 3.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1]);
+}
+
+#[test]
+fn test_f64_round_range_full() {
+    let v = vd_f64(vec![-2.7, 3.2, 5.9], vec![true, true, false]);
+
+    let out = v.round_range(0, 2, true);
+
+    assert_eq!(out.data, vec![-3.0, 3.0, 5.9]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 0]);
+}
+
+#[test]
+fn test_f64_fract_range_slice_only() {
+    let v = vd_f64(vec![1.2, 3.75, -2.5], vec![true, false, true]);
+
+    let out = v.fract_range(1, 3, false);
+
+    assert_eq!(out.data, vec![0.75, -0.5]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1]);
+}
+
+#[test]
+fn test_f64_trunc_range_full() {
+    let v = vd_f64(vec![1.2, 3.75, -2.5], vec![true, false, true]);
+
+    let out = v.trunc_range(0, 2, true);
+
+    assert_eq!(out.data, vec![1.0, 3.0, -2.5]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_f64_signum_range_full() {
+    let v = vd_f64(vec![-2.7, 0.0, 5.4, -1.1], vec![true, false, true, true]);
+
+    let out = v.signum_range(1, 4, true);
+
+    assert_eq!(out.data, vec![-2.7, 0.0, 1.0, -1.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1, 1]);
+}
+
+#[test]
+fn test_f64_roundup_range_slice_only() {
+    let v = vd_f64(vec![-2.7, 3.2, 5.1], vec![true, true, false]);
+
+    let out = v.roundup_range(1, 3, false);
+
+    assert_eq!(out.data, vec![4.0, 6.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0]);
+}
+
+#[test]
+fn test_i64_neg_owned_basic() {
+    let v = vd_i64(vec![1, -2, 0], vec![true, true, true]);
+
+    let out = v.neg();
+
+    assert_eq!(out.data, vec![-1, 2, 0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1]);
+}
+
+#[test]
+fn test_i64_neg_owned_with_nulls() {
+    let v = vd_i64(vec![1, -2, 3], vec![true, false, true]);
+
+    let out = v.neg();
+
+    assert_eq!(out.data, vec![-1, 2, -3]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_i64_neg_inplace_basic() {
+    let mut v = vd_i64(vec![1, -2, 0], vec![true, true, true]);
+
+    v.neg_inplace();
+
+    assert_eq!(v.data, vec![-1, 2, 0]);
+    assert_eq!(v.validity.to_vec(), bitvec![1, 1, 1]);
+}
+
+#[test]
+fn test_i64_neg_inplace_with_nulls() {
+    let mut v = vd_i64(vec![1, -2, 3], vec![true, false, true]);
+
+    v.neg_inplace();
+
+    assert_eq!(v.data, vec![-1, 2, -3]);
+    assert_eq!(v.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+// range: slice-only
+#[test]
+fn test_i64_neg_range_slice_only() {
+    let v = vd_i64(vec![10, -5, 3, -1], vec![true, true, false, true]);
+
+    let out = v.neg_range(1, 3, false);
+
+    // indices 1..3 → [-5, 3] → [5, -3]
+    assert_eq!(out.data, vec![5, -3]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0]); // validity slice copied
+}
+
+// range: full reconstruction
+#[test]
+fn test_i64_neg_range_full() {
+    let v = vd_i64(vec![10, -5, 3, -1], vec![true, true, false, true]);
+
+    let out = v.neg_range(1, 3, true);
+
+    // original:  [10, -5, 3, -1]
+    // neg on 1..3 => [10, 5, -3, -1]
+    assert_eq!(out.data, vec![10, 5, -3, -1]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 0, 1]);
+}
+
+// flip_sign: same as neg, just alias
+
+#[test]
+fn test_i64_flip_sign_owned_basic() {
+    let v = vd_i64(vec![1, -2, 3], vec![true, true, true]);
+
+    let out = v.flip_sign();
+
+    assert_eq!(out.data, vec![-1, 2, -3]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1]);
+}
+
+#[test]
+fn test_i64_flip_sign_inplace() {
+    let mut v = vd_i64(vec![1, -2, 3], vec![true, false, true]);
+
+    v.flip_sign_inplace();
+
+    assert_eq!(v.data, vec![-1, 2, -3]);
+    assert_eq!(v.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_i64_flip_sign_range_full() {
+    let v = vd_i64(vec![1, -2, 3, -4], vec![true, true, true, true]);
+
+    let out = v.flip_sign_range(0, 2, true);
+
+    // flip signs for [1, -2] => [-1, 2]
+    assert_eq!(out.data, vec![-1, 2, 3, -4]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1, 1]);
+}
+
+#[test]
+fn test_i64_signbit_owned_basic() {
+    let v = vd_i64(vec![-3, 0, 5, -1], vec![true, true, true, false]);
+
+    let out = v.signbit();
+
+    assert_eq!(out.data, vec![true, false, false, true]);
+    // validity preserved
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1, 0]);
+}
+
+// slice-only
+#[test]
+fn test_i64_signbit_range_slice_only() {
+    let v = vd_i64(vec![-3, 0, 5], vec![true, false, true]);
+
+    let out = v.signbit_range(0, 2, false);
+
+    // [-3, 0] -> [true, false]
+    assert_eq!(out.data, vec![true, false]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0]);
+}
+
+// full reconstruction
+#[test]
+fn test_i64_signbit_range_full() {
+    let v = vd_i64(vec![-3, 0, 5], vec![true, false, true]);
+
+    let out = v.signbit_range(1, 3, true);
+
+    // original data: [-3, 0, 5]
+    // signbit on indices 1..3 => [signbit(0), signbit(5)] = [false, false]
+    // result data: [true, false, false]
+    assert_eq!(out.data, vec![true, false, false]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_f64_neg_owned_basic() {
+    let v = vd_f64(vec![1.5, -2.0, 0.0], vec![true, true, true]);
+
+    let out = v.neg();
+
+    assert_eq!(out.data, vec![-1.5, 2.0, 0.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1]);
+}
+
+#[test]
+fn test_f64_neg_owned_with_nulls() {
+    let v = vd_f64(vec![1.5, -2.0, 3.3], vec![true, false, true]);
+
+    let out = v.neg();
+
+    assert_eq!(out.data, vec![-1.5, 2.0, -3.3]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_f64_neg_inplace_basic() {
+    let mut v = vd_f64(vec![1.5, -2.0], vec![true, true]);
+
+    v.neg_inplace();
+
+    assert_eq!(v.data, vec![-1.5, 2.0]);
+    assert_eq!(v.validity.to_vec(), bitvec![1, 1]);
+}
+
+#[test]
+fn test_f64_neg_inplace_with_nulls() {
+    let mut v = vd_f64(vec![1.5, -2.0, 3.3], vec![true, false, true]);
+
+    v.neg_inplace();
+
+    assert_eq!(v.data, vec![-1.5, 2.0, -3.3]);
+    assert_eq!(v.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+// range slice-only
+#[test]
+fn test_f64_neg_range_slice_only() {
+    let v = vd_f64(vec![10.0, -5.5, 3.2, -0.1], vec![true, true, false, true]);
+
+    let out = v.neg_range(1, 4, false);
+
+    assert_eq!(out.data, vec![5.5, -3.2, 0.1]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+// range full
+#[test]
+fn test_f64_neg_range_full() {
+    let v = vd_f64(vec![10.0, -5.5, 3.2, -0.1], vec![true, true, false, true]);
+
+    let out = v.neg_range(1, 4, true);
+
+    assert_eq!(out.data, vec![10.0, 5.5, -3.2, 0.1]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 0, 1]);
+}
+
+// flip_sign
+
+#[test]
+fn test_f64_flip_sign_owned_basic() {
+    let v = vd_f64(vec![1.0, -2.0, 3.5], vec![true, true, true]);
+
+    let out = v.flip_sign();
+
+    assert_eq!(out.data, vec![-1.0, 2.0, -3.5]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1]);
+}
+
+#[test]
+fn test_f64_flip_sign_inplace() {
+    let mut v = vd_f64(vec![1.0, -2.0, 3.5], vec![true, false, true]);
+
+    v.flip_sign_inplace();
+
+    assert_eq!(v.data, vec![-1.0, 2.0, -3.5]);
+    assert_eq!(v.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_f64_flip_sign_range_full() {
+    let v = vd_f64(vec![1.0, -2.0, 3.5, -4.5], vec![true, true, true, true]);
+
+    let out = v.flip_sign_range(0, 3, true);
+
+    assert_eq!(out.data, vec![-1.0, 2.0, -3.5, -4.5]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1, 1]);
+}
+
+#[test]
+fn test_f64_signbit_owned_basic() {
+    let v = vd_f64(vec![-0.0, 0.0, -2.5, 3.3], vec![true, true, true, false]);
+
+    let out = v.signbit();
+
+    assert_eq!(out.data, vec![true, false, true, false]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1, 0]);
+}
+
+#[test]
+fn test_f64_signbit_range_slice_only() {
+    let v = vd_f64(vec![-0.0, 1.0, -3.0], vec![true, false, true]);
+
+    let out = v.signbit_range(0, 2, false);
+
+    assert_eq!(out.data, vec![true, false]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0]);
+}
+
+#[test]
+fn test_f64_signbit_range_full() {
+    let v = vd_f64(vec![-0.0, 1.0, -3.0], vec![true, false, true]);
+
+    let out = v.signbit_range(1, 3, true);
+
+    // signbit(1.0)=false, signbit(-3.0)=true
+    assert_eq!(out.data, vec![false, false, true]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_bool_not_owned_basic() {
+    let v = vd_bool(vec![true, false, true], vec![true, true, true]);
+
+    let out = v.not();
+
+    assert_eq!(out.data, vec![false, true, false]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1]);
+}
+
+#[test]
+fn test_bool_not_owned_with_nulls() {
+    let v = vd_bool(vec![true, false, true], vec![true, false, true]);
+
+    let out = v.not();
+
+    // values flipped where valid, but validity preserved
+    assert_eq!(out.data, vec![false, true, false]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_bool_not_inplace_basic() {
+    let mut v = vd_bool(vec![true, false], vec![true, true]);
+
+    v.not_inplace();
+
+    assert_eq!(v.data, vec![false, true]);
+    assert_eq!(v.validity.to_vec(), bitvec![1, 1]);
+}
+
+#[test]
+fn test_bool_not_inplace_with_nulls() {
+    let mut v = vd_bool(vec![true, false, true], vec![false, true, true]);
+
+    v.not_inplace();
+
+    assert_eq!(v.data, vec![false, true, false]);
+    assert_eq!(v.validity.to_vec(), bitvec![0, 1, 1]);
+}
+
+// range: slice-only
+#[test]
+fn test_bool_not_range_slice_only() {
+    let v = vd_bool(vec![true, false, true, false], vec![true, true, false, true]);
+
+    let out = v.not_range(1, 4, false);
+
+    // slice [false, true, false] → [true, false, true]
+    assert_eq!(out.data, vec![true, false, true]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+// range: full reconstruction
+#[test]
+fn test_bool_not_range_full() {
+    let v = vd_bool(vec![true, false, true, false], vec![true, true, false, true]);
+
+    let out = v.not_range(1, 3, true);
+
+    // original data: [true, false, true, false]
+    // not on 1..3 => [true, true, true, false]
+    assert_eq!(out.data, vec![true, true, false, false]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 0, 1]);
+}
+
+#[test]
+fn test_i64_neg_operator_owned() {
+    let v = vd_i64(vec![5, -3, 0], vec![true, false, true]);
+
+    let out = -v;   // owned negation
+
+    assert_eq!(out.data, vec![-5, 3, 0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_i64_neg_operator_ref() {
+    let v = vd_i64(vec![10, -2, 7], vec![true, true, false]);
+
+    let out = -&v;  // borrowed negation
+
+    assert_eq!(out.data, vec![-10, 2, -7]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 0]);
+
+    // Ensure original was not mutated
+    assert_eq!(v.data, vec![10, -2, 7]);
+}
+
+#[test]
+fn test_i64_neg_operator_all_nulls() {
+    let v = vd_i64(vec![1, 2, 3], vec![false, false, false]);
+
+    let out = -v;
+
+    assert_eq!(out.data, vec![-1, -2, -3]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 0, 0]);
+}
+
+#[test]
+fn test_f64_neg_operator_owned() {
+    let v = vd_f64(vec![2.5, -1.0, 0.0], vec![true, false, true]);
+
+    let out = -v;
+
+    assert_eq!(out.data, vec![-2.5, 1.0, 0.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_f64_neg_operator_ref() {
+    let v = vd_f64(vec![-0.5, 3.1, -7.2], vec![true, true, true]);
+
+    let out = -&v;
+
+    assert_eq!(out.data, vec![0.5, -3.1, 7.2]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1]);
+
+    // Confirm not mutated
+    assert_eq!(v.data, vec![-0.5, 3.1, -7.2]);
+}
+
+#[test]
+fn test_f64_neg_operator_with_nulls() {
+    let v = vd_f64(vec![1.5, -4.0, 2.0], vec![false, true, false]);
+
+    let out = -v;
+
+    assert_eq!(out.data, vec![-1.5, 4.0, -2.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1, 0]);
+}
+
+#[test]
+fn test_f64_neg_operator_empty() {
+    let v = vd_f64(vec![], vec![]);
+
+    let out = -v;
+
+    assert!(out.data.is_empty());
+    assert!(out.validity.is_empty());
+}
+
+#[test]
+fn test_f64_neg_operator_negative_zero() {
+    let v = vd_f64(vec![-0.0, 0.0], vec![true, true]);
+
+    let out = -v;
+
+    // -(-0.0) = +0.0
+    // -(+0.0) = -0.0
+    assert_eq!(out.data[0].to_bits(), 0.0_f64.to_bits());       // +0.0
+    assert_eq!(out.data[1].to_bits(), (-0.0_f64).to_bits());    // -0.0
+}
+
+#[test]
+fn test_i64_sqrt_owned_basic() {
+    let v = vd_i64(vec![9, 0, -4], vec![true, true, true]);
+
+    let out = v.sqrt();
+
+    // values (NaN for negative, but invalid anyway)
+    assert_eq!(out.data[0], 3.0);
+    assert_eq!(out.data[1], 0.0);
+    assert!(out.data[2].is_nan());
+
+    // validity: negative -> false
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 0]);
+}
+
+#[test]
+fn test_i64_sqrt_range_slice_only() {
+    // data: [16, -1, 25]
+    // valid: [1,  1,  1]
+    let v = vd_i64(vec![16, -1, 25], vec![true, true, true]);
+
+    // slice [1,3), full = false
+    let out = v.sqrt_range(1, 3, false);
+
+    // expect: sqrt(-1) -> NaN (invalid), sqrt(25) -> 5
+    assert!(out.data[0].is_nan());
+    assert_eq!(out.data[1], 5.0);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1]);
+}
+
+#[test]
+fn test_i64_sqrt_range_full() {
+    let v = vd_i64(vec![16, -1, 25], vec![true, true, true]);
+
+    // apply sqrt to [1,3), full = true
+    let out = v.sqrt_range(1, 3, true);
+
+    // index 0 unchanged (converted to f64), indices 1..2 transformed
+    assert_eq!(out.data[0], 16.0);
+    assert!(out.data[1].is_nan());
+    assert_eq!(out.data[2], 5.0);
+
+    // validity: index 1 becomes invalid
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_i64_cbrt_owned() {
+    let v = vd_i64(vec![27, -8, 1], vec![true, false, true]);
+
+    let out = v.cbrt();
+
+    assert_eq!(out.data, vec![3.0, -2.0, 1.0]);
+    // validity unchanged
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_i64_cbrt_range_full() {
+    let v = vd_i64(vec![8, 0, -27, 64], vec![true, true, true, true]);
+
+    let out = v.cbrt_range(1, 4, true);
+
+    assert_eq!(out.data, vec![8.0, 0.0, -3.0, 4.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1, 1]);
+}
+
+#[test]
+fn test_f64_sqrt_owned_basic() {
+    // data: [4.0, 0.0, -9.0]
+    // valid: [1,   0,   1   ]
+    let v = vd_f64(vec![4.0, 0.0, -9.0], vec![true, false, true]);
+
+    let out = v.sqrt();
+
+    assert_eq!(out.data[0], 2.0);
+    assert_eq!(out.data[1], 0.0);        // unchanged value, validity = 0
+    assert!(out.data[2].is_nan());       // NaN for negative
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 0]); // index 2 invalidated
+}
+
+#[test]
+fn test_f64_sqrt_inplace_basic() {
+    let mut v = vd_f64(vec![1.0, -4.0, 9.0], vec![true, true, true]);
+
+    v.sqrt_inplace();
+
+    assert_eq!(v.data[0], 1.0);
+    assert!(!v.validity[1]);
+    assert_eq!(v.data[2], 3.0);
+
+    // validity: index 1 becomes invalid
+    assert_eq!(v.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_f64_sqrt_range_full() {
+    // data: [1.0, -4.0, 9.0]
+    // valid: [1,    1,   0 ]
+    let v = vd_f64(vec![1.0, -4.0, 9.0], vec![true, true, false]);
+
+    let out = v.sqrt_range(1, 3, true);
+
+    assert_eq!(out.data[0], 1.0);       // untouched
+    assert!(!out.validity[1]);   // negative sqrt
+    assert_eq!(out.data[2], 3.0);
+
+    // validity: index 1 invalidated, index 2 was already 0 => stays 0
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 0]);
+}
+
+#[test]
+fn test_f64_cbrt_owned() {
+    let v = vd_f64(vec![8.0, -27.0, 1.0], vec![true, false, true]);
+
+    let out = v.cbrt();
+
+    assert_eq!(out.data, vec![2.0, -3.0, 1.0]);
+    // validity unchanged
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_f64_cbrt_inplace() {
+    let mut v = vd_f64(vec![8.0, -27.0], vec![true, true]);
+
+    v.cbrt_inplace();
+
+    assert_eq!(v.data, vec![2.0, -3.0]);
+    assert_eq!(v.validity.to_vec(), bitvec![1, 1]);
+}
+
+#[test]
+fn test_i64_rsqrt_owned_basic() {
+    let v = vd_i64(vec![1, 4, 16], vec![true; 3]);
+
+    let out = v.rsqrt();
+
+    assert_eq!(out.data, vec![1.0, 0.5, 0.25]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1]);
+}
+
+#[test]
+fn test_i64_rsqrt_owned_invalid_negative() {
+    let v = vd_i64(vec![4, -9, 16], vec![true; 3]);
+
+    let out = v.rsqrt();
+
+    assert_eq!(out.data[0], 0.5);
+    assert!(out.data[1].is_nan());
+    assert_eq!(out.data[2], 0.25);
+
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_f64_rsqrt_owned_basic() {
+    let v = vd_f64(vec![1.0, 4.0, 16.0], vec![true;3]);
+
+    let out = v.rsqrt();
+
+    assert_eq!(out.data, vec![1.0, 0.5, 0.25]);
+}
+
+#[test]
+fn test_f64_rsqrt_inplace() {
+    let mut v = vd_f64(vec![1.0, 4.0, -9.0], vec![true;3]);
+
+    v.rsqrt_inplace();
+
+    assert_eq!(v.data[0], 1.0);
+    assert_eq!(v.data[1], 0.5);
+
+    assert_eq!(v.validity.to_vec(), bitvec![1,1,0]);
+}
+
+#[test]
+fn test_f64_rsqrt_range_full() {
+    let v = vd_f64(vec![1.0, 4.0, 9.0, 16.0], vec![true;4]);
+
+    let out = v.rsqrt_range(1, 3, true);
+
+    assert_eq!(out.data, vec![1.0, 0.5, 1.0/9.0_f64.sqrt(), 16.0]);
+}
+
+#[test]
+fn test_i64_rcbrt_owned_basic() {
+    let v = vd_i64(vec![1, 8, 27], vec![true;3]);
+
+    let out = v.rcbrt();
+
+    assert_eq!(out.data, vec![1.0, 0.5, 1.0 / 3.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1,1,1]);
+}
+
+#[test]
+fn test_i64_rcbrt_owned_zero() {
+    let v = vd_i64(vec![0, 8], vec![true;2]);
+
+    let out = v.rcbrt();
+
+    assert_eq!(out.data[0], f64::INFINITY);
+    assert_eq!(out.data[1], 0.5);
+}
+
+#[test]
+fn test_f64_rcbrt_owned_basic() {
+    let v = vd_f64(vec![1.0, 8.0, 27.0], vec![true;3]);
+
+    let out = v.rcbrt();
+
+    assert_eq!(out.data, vec![1.0, 0.5, 1.0/3.0]);
+}
+
+#[test]
+fn test_f64_rcbrt_inplace() {
+    let mut v = vd_f64(vec![1.0, 8.0, 0.0], vec![true;3]);
+
+    v.rcbrt_inplace();
+
+    assert_eq!(v.data[0], 1.0);
+    assert_eq!(v.data[1], 0.5);
+    assert_eq!(v.data[2], f64::INFINITY);
+}
+
+#[test]
+fn test_f64_rcbrt_range_full() {
+    let v = vd_f64(vec![1.0, 8.0, 27.0], vec![true;3]);
+
+    let out = v.rcbrt_range(1, 3, true);
+
+    assert_eq!(out.data, vec![1.0, 0.5, 1.0/3.0]);
+}
+
+#[test]
+fn test_i64_nth_root_owned_basic() {
+    let v = vd_i64(vec![1, 8, 27], vec![true, true, true]);
+
+    let out = v.nth_root(3.0);
+
+    let expected = vec![1.0_f64, 2.0_f64, 3.0_f64];
+
+    assert_eq!(out.data, expected);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1]);
+}
+
+#[test]
+fn test_i64_nth_root_negatives() {
+    let v = vd_i64(vec![-8, -27, 16], vec![true, true, true]);
+
+    // 3rd root → valid; 2nd root → invalid
+    let out = v.nth_root(2.0); // even root → negative values → NaN
+
+    assert!(out.data[0].is_nan());
+    assert!(out.data[1].is_nan());
+    assert_eq!(out.data[2], 4.0);
+
+    assert_eq!(out.validity.to_vec(), bitvec![0, 0, 1]);
+}
+
+#[test]
+fn test_i64_nth_root_fractional_owned() {
+    let v = vd_i64(vec![4, 9, 16], vec![true, true, true]);
+
+    let out = v.nth_root(2.0); // same as sqrt
+
+    assert_eq!(out.data, vec![2.0, 3.0, 4.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1]);
+}
+
+#[test]
+fn test_i64_nth_root_range_slice_only() {
+    let v = vd_i64(vec![1, 8, 27, 64], vec![true, true, true, true]);
+
+    let out = v.nth_root_range(3.0, 1, 3, false);
+
+    assert_eq!(out.data, vec![2.0, 3.0]); // cube roots of 8 and 27
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1]);
+}
+
+#[test]
+fn test_i64_nth_root_range_full() {
+    let v = vd_i64(vec![1, 8, 27, 64], vec![true, true, true, true]);
+
+    let out = v.nth_root_range(3.0, 1, 3, true);
+
+    assert_eq!(out.data, vec![
+        1.0,  // unchanged outside slice
+        2.0,  // 8^(1/3)
+        3.0,  // 27^(1/3)
+        64.0  // converted (no root applied)
+    ]);
+
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1, 1]);
+}
+
+#[test]
+fn test_f64_nth_root_owned_basic() {
+    let v = vd_f64(vec![1.0, 8.0, 27.0], vec![true, true, true]);
+
+    let out = v.nth_root(3.0);
+
+    assert_eq!(out.data, vec![1.0, 2.0, 3.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1]);
+}
+
+#[test]
+fn test_f64_nth_root_nan_propagation() {
+    let v = vd_f64(vec![-8.0, 4.0, -27.0], vec![true, true, true]);
+
+    let out = v.nth_root(2.0); // even root produces NaN on negatives
+
+    assert!(out.data[0].is_nan());
+    assert_eq!(out.data[1], 2.0);
+    assert!(out.data[2].is_nan());
+
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1, 0]);
+}
+
+#[test]
+fn test_f64_nth_root_inplace_basic() {
+    let mut v = vd_f64(vec![1.0, 8.0, 27.0], vec![true, true, true]);
+
+    v.nth_root_inplace(3.0);
+
+    assert_eq!(v.data, vec![1.0, 2.0, 3.0]);
+    assert_eq!(v.validity.to_vec(), bitvec![1, 1, 1]);
+}
+
+#[test]
+fn test_f64_nth_root_inplace_invalid() {
+    let mut v = vd_f64(vec![-8.0, 4.0, -27.0], vec![true, true, true]);
+
+    v.nth_root_inplace(2.0);
+
+    assert_eq!(v.data[1], 2.0);
+
+    assert_eq!(v.validity.to_vec(), bitvec![0, 1, 0]);
+}
+
+#[test]
+fn test_f64_nth_root_range_slice_only() {
+    let v = vd_f64(vec![1.0, 8.0, 27.0, 64.0], vec![true; 4]);
+
+    let out = v.nth_root_range(3.0, 1, 3, false);
+
+    assert_eq!(out.data, vec![2.0, 3.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1]);
+}
+
+#[test]
+fn test_f64_nth_root_range_full() {
+    let v = vd_f64(vec![1.0, 8.0, 27.0, 64.0], vec![true; 4]);
+
+    let out = v.nth_root_range(3.0, 1, 3, true);
+
+    assert_eq!(out.data, vec![
+        1.0,  // unchanged
+        2.0,  // nth_root applied
+        3.0,  // nth_root applied
+        64.0  // converted as identity
+    ]);
+
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1, 1]);
+}
+
+#[test]
+fn test_i64_mul_scalar_owned() {
+    let v = vd_i64(vec![1, -2, 3], vec![true, false, true]);
+    let out = v.mul_scalar(10.0);
+
+    assert_eq!(out.data, vec![10.0, -20.0, 30.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_i64_mul_scalar_range_slice() {
+    let v = vd_i64(vec![1, 2, 3, 4], vec![true; 4]);
+    let out = v.mul_scalar_range(10.0, 1, 3, false);
+
+    assert_eq!(out.data, vec![20.0, 30.0]);
+}
+
+#[test]
+fn test_i64_mul_scalar_range_full() {
+    let v = vd_i64(vec![1, 2, 3, 4], vec![true; 4]);
+    let out = v.mul_scalar_range(10.0, 1, 3, true);
+
+    assert_eq!(out.data, vec![1.0, 20.0, 30.0, 4.0]);
+}
+
+#[test]
+fn test_i64_add_scalar_owned() {
+    let v = vd_i64(vec![1, -2, 3], vec![true, false, true]);
+    let out = v.add_scalar(5.0);
+
+    assert_eq!(out.data, vec![6.0, 3.0, 8.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_i64_add_scalar_range_full() {
+    let v = vd_i64(vec![1, 2, 3], vec![true; 3]);
+    let out = v.add_scalar_range(2.0, 1, 3, true);
+
+    assert_eq!(out.data, vec![1.0, 4.0, 5.0]);
+}
+
+#[test]
+fn test_i64_sub_scalar_owned() {
+    let v = vd_i64(vec![10, 5, -3], vec![true, true, false]);
+    let out = v.sub_scalar(2.0);
+
+    assert_eq!(out.data, vec![8.0, 3.0, -5.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 0]);
+}
+
+#[test]
+fn test_i64_sub_scalar_range_full() {
+    let v = vd_i64(vec![10, 20, 30], vec![true; 3]);
+    let out = v.sub_scalar_range(5.0, 1, 3, true);
+
+    assert_eq!(out.data, vec![10.0, 15.0, 25.0]);
+}
+
+#[test]
+fn test_i64_div_scalar_owned() {
+    let v = vd_i64(vec![10, 0, -5], vec![true, true, true]);
+    let out = v.div_scalar(2.0);
+
+    assert_eq!(out.data, vec![5.0, 0.0, -2.5]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1]);
+}
+
+#[test]
+fn test_i64_div_scalar_zero_div_zero() {
+    let v = vd_i64(vec![0], vec![true]);
+    let out = v.div_scalar(0.0);
+
+    assert!(out.data[0].is_nan());
+    assert_eq!(out.validity.to_vec(), bitvec![0]);
+}
+
+#[test]
+fn test_i64_inv_div_scalar_owned() {
+    let v = vd_i64(vec![2, -2, 0], vec![true; 3]);
+    let out = v.inv_div_scalar(10.0);
+
+    assert_eq!(out.data, vec![5.0, -5.0, f64::INFINITY]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1]);
+}
+
+#[test]
+fn test_i64_inv_div_scalar_zero_zero() {
+    let v = vd_i64(vec![0], vec![true]);
+    let out = v.inv_div_scalar(0.0);
+
+    assert!(out.data[0].is_nan());
+    assert_eq!(out.validity.to_vec(), bitvec![0]);
+}
+
+#[test]
+fn test_f64_mul_scalar_owned() {
+    let v = vd_f64(vec![1.0, -2.0, 3.0], vec![true, false, true]);
+    let out = v.mul_scalar(2.0);
+
+    assert_eq!(out.data, vec![2.0, -4.0, 6.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_f64_mul_scalar_inplace() {
+    let mut v = vd_f64(vec![1.0, 2.0], vec![true; 2]);
+    v.mul_scalar_inplace(3.0);
+
+    assert_eq!(v.data, vec![3.0, 6.0]);
+}
+
+#[test]
+fn test_f64_add_scalar_owned() {
+    let v = vd_f64(vec![1.0, 2.0, -1.0], vec![true; 3]);
+    let out = v.add_scalar(5.5);
+
+    assert_eq!(out.data, vec![6.5, 7.5, 4.5]);
+}
+
+#[test]
+fn test_f64_sub_scalar_owned() {
+    let v = vd_f64(vec![10.0, 5.0], vec![true; 2]);
+    let out = v.sub_scalar(1.5);
+
+    assert_eq!(out.data, vec![8.5, 3.5]);
+}
+
+#[test]
+fn test_f64_div_scalar_basic() {
+    let v = vd_f64(vec![10.0, -4.0], vec![true; 2]);
+    let out = v.div_scalar(2.0);
+
+    assert_eq!(out.data, vec![5.0, -2.0]);
+}
+
+#[test]
+fn test_f64_div_scalar_zero_zero() {
+    let v = vd_f64(vec![0.0], vec![true]);
+    let out = v.div_scalar(0.0);
+
+    assert!(out.data[0].is_nan());
+    assert_eq!(out.validity.to_vec(), bitvec![0]);
+}
+
+#[test]
+fn test_f64_inv_div_scalar_owned() {
+    let v = vd_f64(vec![2.0, -2.0, 0.0], vec![true; 3]);
+    let out = v.inv_div_scalar(4.0);
+
+    assert_eq!(out.data, vec![2.0, -2.0, f64::INFINITY]);
+}
+
+#[test]
+fn test_f64_inv_div_scalar_zero_zero() {
+    let v = vd_f64(vec![0.0], vec![true]);
+    let out = v.inv_div_scalar(0.0);
+
+    assert!(out.data[0].is_nan());
+    assert_eq!(out.validity.to_vec(), bitvec![0]);
+}
+
+#[test]
+fn test_i64_add_scalar_operator() {
+    let v = vd_i64(vec![1, 2, -3], vec![true, false, true]);
+    let out = v + 5.0;
+
+    assert_eq!(out.data, vec![6.0, 7.0, 2.0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_i64_mul_scalar_operator_ref() {
+    let v = vd_i64(vec![2, -1], vec![true, true]);
+    let out = &v * 3.0;
+    assert_eq!(out.data, vec![6.0, -3.0]);
+}
+
+#[test]
+fn test_f64_div_scalar_operator() {
+    let v = vd_f64(vec![10.0, -4.0], vec![true; 2]);
+    let out = v / 2.0;
+    assert_eq!(out.data, vec![5.0, -2.0]);
+}
+
+#[test]
+fn test_f64_scalar_div_vector() {
+    let v = vd_f64(vec![2.0, -2.0, 0.0], vec![true; 3]);
+    let out = 10.0 / v;
+
+    assert_eq!(out.data[0], 5.0);
+    assert_eq!(out.data[1], -5.0);
+    assert!(out.data[2].is_infinite());
+}

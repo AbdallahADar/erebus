@@ -1,0 +1,28 @@
+Basic build:
+cargo build
+
+Release build with optimizations:
+cargo build --release
+
+Remove compiled artifacts:
+cargo clean
+
+Run all tests in crate:
+cargo test
+
+Run tests for specific crate in a workspace:
+cargo test -p erebus-vector
+cargo test -p erebus-core
+
+Run tests with external features:
+cargo test -p erebus-vector --features internal
+The features internal is needed so that we can test internal functions as well.
+
+Run specific test file inside a workspace with features:
+cargo test -p erebus-vector --test compile_vector_data --features internal
+
+Run tests with text printed out:
+cargo test -p erebus-io --features internal -- --nocapture
+
+Running bin files:
+cargo run --release --bin rayon_chunking
