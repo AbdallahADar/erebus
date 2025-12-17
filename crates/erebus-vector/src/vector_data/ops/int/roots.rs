@@ -38,7 +38,7 @@ impl VectorData<i64> {
         |x: &i64, n: f64| {
             let y = (*x as f64).powf(1.0 / n);
             if y.is_nan() {
-                (y, false)
+                (0_f64, false)
             } else {
                 (y, true)
             }
@@ -52,7 +52,7 @@ impl VectorData<i64> {
         f64,
         |x: &i64| {
             if *x < 0 {
-                (f64::NAN, false)
+                (0_f64, false)
             } else {
                 let root = (*x as f64).sqrt();
                 if root == 0.0 {

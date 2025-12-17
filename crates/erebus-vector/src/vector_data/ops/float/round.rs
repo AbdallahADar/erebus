@@ -70,4 +70,59 @@ impl VectorData<f64> {
     ) -> VectorData<f64> {
         self.ceil_range(start, end, full)
     }
+
+    // -- Clip (min ≤ x ≤ max) --
+    impl_unary_op!(
+        params_valid, inplace,
+        clip, clip_inplace, clip_range,
+        (lo: f64, hi: f64) -> (lo, hi),
+        f64,
+        |x: &f64, lo: f64, hi: f64| {
+            if lo > hi {
+                (0.0, false)
+            } else if *x < lo {
+                (lo, true)
+            } else if *x > hi {
+                (hi, true)
+            } else {
+                (*x, true)
+            }
+        },
+        |x: &mut f64, lo: f64, hi: f64| {
+            if lo > hi {
+                *x = 0.0;
+                false
+            } else if *x < lo {
+                *x = lo;
+                true
+            } else if *x > hi {
+                *x = hi;
+                true
+            } else {
+                true
+            }
+        }
+    );
+
+    // -- Clamp (alias for Clip) --
+    #[inline]
+    pub fn clamp(&self, lo: f64, hi: f64) -> VectorData<f64> {
+        self.clip(lo, hi)
+    }
+    #[inline]
+    pub fn clamp_inplace(&mut self, lo: f64, hi: f64) {
+        self.clip_inplace(lo, hi)
+    }
+    #[inline]
+    pub fn clamp_range(
+        &self,
+        lo: f64,
+        hi: f64,
+        start: usize,
+        end: usize,
+        full: bool,
+    ) -> VectorData<f64> {
+        self.clip_range(lo, hi, start, end, full)
+    }
+
 }

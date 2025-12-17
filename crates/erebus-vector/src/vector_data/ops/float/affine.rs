@@ -53,7 +53,7 @@ impl VectorData<f64> {
         f64,
         |x: &f64, c: f64| {
             let y = *x / c;
-            if y.is_nan() { (y, false) } else { (y, true) }
+            if y.is_nan() { (0_f64, false) } else { (y, true) }
         },
         |x: &mut f64, c: f64| {
             let y = *x / c;
@@ -74,7 +74,7 @@ impl VectorData<f64> {
         f64,
         |x: &f64, c: f64| {
             let y = c / *x;
-            if y.is_nan() { (y, false) } else { (y, true) }
+            if y.is_nan() { (0_f64, false) } else { (y, true) }
         },
         |x: &mut f64, c: f64| {
             let y = c / *x;

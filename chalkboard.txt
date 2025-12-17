@@ -5,6 +5,20 @@ No set format, free flowing ideas.
 -- Latest stopping point: Affine funcs
 -- Next step: With validity versions starting power
 -- TODO: Indexing tests
+         Test files are using similar helper functions.
+            Create centralized helper functions and then use them.
+         For some unary functions, may have not coded infinite as NA
+            and I have decided (for now) that +/-Inf is NA for both float
+            and int.
+
+
+-- Big Change to Make:
+    For unary operators, instead of doing .is_nan() check to determine
+    whether it is NA or not, use direct conditions when possible.
+    This is because with the is_nan() setup, the following framework
+    takes place: calc -> check -> write
+    We should do this instead: check -> calc + write OR write.
+    This new framework will avoid unnecessary calcs.
 
 > Logit
 > Expit
@@ -34,8 +48,10 @@ No set format, free flowing ideas.
 > Prevpow
 > Ndigits
 
-> Inverse divide x/y becomes y/x
-> Reciprocal
+> Lineage like Ark
+
+[-] > Inverse divide x/y becomes y/x
+[-] > Reciprocal
 
 [-] > Concatenation of vectors
 

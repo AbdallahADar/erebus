@@ -3,3 +3,6 @@ mod round;
 mod exp;
 mod roots;
 mod affine;
+mod power;
+mod logs;
+mod trig;

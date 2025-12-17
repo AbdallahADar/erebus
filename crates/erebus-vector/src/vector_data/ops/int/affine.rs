@@ -50,7 +50,7 @@ impl VectorData<i64> {
         f64,
         |x: &i64, c: f64| {
             let y = (*x as f64)/c;
-            if y.is_nan() { (y, false) } else { (y, true) }
+            if y.is_nan() { (0_f64, false) } else { (y, true) }
         }
     );
 
@@ -62,7 +62,7 @@ impl VectorData<i64> {
         f64,
         |x: &i64, c: f64| {
             let y = c / (*x as f64);
-            if y.is_nan() { (y, false) } else { (y, true) }
+            if y.is_nan() { (0_f64, false) } else { (y, true) }
         }
     );
 
