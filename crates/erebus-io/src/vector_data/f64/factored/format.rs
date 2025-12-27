@@ -68,7 +68,7 @@ impl F64FactoredHeader {
     }
 
     /// Write this header to the writer.
-    pub fn write<W: Write>(&self, w: &mut W) -> Result<(), ErebusError> {
+    pub fn write<W: Write>(&self, w: &mut W) -> ErrorResult<()> {
         w.write_all(&[self.version])?;
         w.write_all(&self.n_rows.to_le_bytes())?;
         w.write_all(&self.validity_len.to_le_bytes())?;
@@ -80,7 +80,7 @@ impl F64FactoredHeader {
     }
 
     /// Read a factored header from the reader.
-    pub fn read<R: Read>(r: &mut R) -> Result<Self, ErebusError> {
+    pub fn read<R: Read>(r: &mut R) -> ErrorResult<Self> {
         let mut buf_u8 = [0u8; 1];
         let mut buf_u64 = [0u8; 8];
 

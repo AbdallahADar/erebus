@@ -143,7 +143,7 @@ pub(crate) fn write_vectordata_f64_factored<W: Write + Seek>(
     writer: &mut ErebusWriter<W>,
     values: &[f64],
     validity: &BitVec,
-) -> Result<(), ErebusError> {
+) -> ErrorResult<()> {
 
     let s = encode_f64_factored_streams(values, validity);
 
@@ -184,7 +184,7 @@ pub struct FactoredWriter<'a, W: Write + Seek> {
 }
 
 impl<'a, W: Write + Seek> FactoredWriter<'a, W> {
-    pub fn write(self, values: &[f64], validity: &BitVec) -> Result<(), ErebusError> {
+    pub fn write(self, values: &[f64], validity: &BitVec) -> ErrorResult<()> {
         write_vectordata_f64_factored(self.writer, values, validity)
     }
 }

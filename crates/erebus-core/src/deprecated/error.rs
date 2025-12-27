@@ -7,38 +7,40 @@ use std::io;
 pub enum ErebusError {
 
     Invalid,
-    EmptyTable,
-    EmptyColumn,
-    EmptyVector,
-    EmptySelection,
+    EmptyTable, //
+    EmptyColumn, //
+    EmptyVector, //
+    EmptySelection, //
 
-    VectorLengthMismatch { expected: usize, found: usize },
-    ColumnLengthMismatch { expected: usize, found: usize },
-    RowLengthMismatch { expected: usize, found: usize },
+    VectorLengthMismatch { expected: usize, found: usize }, //
+    ColumnLengthMismatch { expected: usize, found: usize }, //
+    RowLengthMismatch { expected: usize, found: usize }, //
 
-    ColumnNotFound(String),
-    DuplicateSelection(String),
+    ColumnNotFound(String), //
+    DuplicateSelection(String), //
 
-    TypeMismatch { expected: String, found: String },
+    TypeMismatch { expected: String, found: String }, //
 
-    IndexOutOfBounds(usize),
-    InvalidOperation(String),
-    InvalidDtype(String),
-    JoinKeyMismatch,
-    ColumnDataMismatch,
+    IndexOutOfBounds(usize), //
+    InvalidOperation(String), //
+    InvalidDtype(String), //
+    JoinKeyMismatch, //
+    ColumnDataMismatch, //
 
-    IoError(io::Error),
-    InvalidMagic,
-    InvalidHeader,
-    InvalidVersion { expected: u8, found: u8 },
-    UnknownObjectType(u8),
-    UnknownBaseType(u8),
-    UnknownEncodingType(u8),
-    UnexpectedEof,
-    StreamLengthMismatch { expected: u64, found: u64 },
-    EncodeError(String),
-    DecodeError(String),
-    OOB(String),
+    IoError(io::Error), //
+    InvalidMagic, //
+    InvalidHeader, //
+    InvalidVersion { expected: u8, found: u8 }, //
+    UnknownObjectType(u8), //
+    UnknownBaseType(u8), //
+    UnknownEncodingType(u8), //
+    UnexpectedEof, //
+    StreamLengthMismatch { expected: u64, found: u64 }, //
+    EncodeError(String), //
+    DecodeError(String), //
+    OOB(String), //
+    InvalidCutBins { reason: String },
+    InvalidCutLabels { expected: usize, found: usize },
     // … add others as library grows
 }
 
@@ -96,6 +98,9 @@ impl fmt::Display for ErebusError {
             Self::DecodeError(msg) =>
                 write!(f, "Decoding error: {}", msg),
             Self::OOB(msg) => write!(f, "{}", msg),
+            Self::InvalidCutBins { reason } => write!(f, "{}", reason),
+            Self::InvalidCutLabels { expected, found } =>
+                write!(f, "Cut labels mismatch: expected {}, found {}", expected, found),
         }
     }
 }

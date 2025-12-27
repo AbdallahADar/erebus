@@ -18,7 +18,7 @@ impl<R: Read + Seek> ErebusReader<R> {
         &mut self.inner
     }
 
-    pub fn read_magic(&mut self) -> Result<(), ErebusError> {
+    pub fn read_magic(&mut self) -> ErrorResult<()> {
         let mut buf = [0u8; 4];
         self.inner.read_exact(&mut buf)?;
         if buf != EREBUS_MAGIC {
@@ -27,18 +27,18 @@ impl<R: Read + Seek> ErebusReader<R> {
         Ok(())
     }
 
-    pub fn read_version(&mut self) -> Result<u8, ErebusError> {
+    pub fn read_version(&mut self) -> ErrorResult<u8> {
         let mut buf = [0u8; 1];
         self.inner.read_exact(&mut buf)?;
         Ok(buf[0])
     }
 
-    pub fn read_magic_and_version(&mut self) -> Result<u8, ErebusError> {
+    pub fn read_magic_and_version(&mut self) -> ErrorResult<u8> {
         self.read_magic()?;
         self.read_version()
     }
 
-    pub fn read_global_header(&mut self) -> Result<ErebusHeader, ErebusError> {
+    pub fn read_global_header(&mut self) -> ErrorResult<ErebusHeader> {
         // MUST match write_global_header()
         let mut buf = [0u8; 4];
         self.inner.read_exact(&mut buf)?;
@@ -56,19 +56,19 @@ impl<R: Read + Seek> ErebusReader<R> {
         })
     }
 
-    pub fn read_bytes(&mut self, len: usize) -> Result<Vec<u8>, ErebusError> {
+    pub fn read_bytes(&mut self, len: usize) -> ErrorResult<Vec<u8>> {
         let mut buf = vec![0u8; len];
         self.inner.read_exact(&mut buf)?;
         Ok(buf)
     }
 
-    pub fn read_u64(&mut self) -> Result<u64, ErebusError> {
+    pub fn read_u64(&mut self) -> ErrorResult<u64> {
         let mut buf = [0u8; 8];
         self.inner.read_exact(&mut buf)?;
         Ok(u64::from_le_bytes(buf))
     }
 
-    pub fn read_u64_stream(&mut self, len: usize) -> Result<Vec<u64>, ErebusError> {
+    pub fn read_u64_stream(&mut self, len: usize) -> ErrorResult<Vec<u64>> {
         let bytes = self.read_bytes(len * 8)?;
         let mut out = Vec::with_capacity(len);
         for chunk in bytes.chunks_exact(8) {
@@ -77,7 +77,7 @@ impl<R: Read + Seek> ErebusReader<R> {
         Ok(out)
     }
 
-    pub fn read_i16_stream(&mut self, len: usize) -> Result<Vec<i16>, ErebusError> {
+    pub fn read_i16_stream(&mut self, len: usize) -> ErrorResult<Vec<i16>> {
         let bytes = self.read_bytes(len * 2)?;
         let mut out = Vec::with_capacity(len);
         for chunk in bytes.chunks_exact(2) {
@@ -86,11 +86,11 @@ impl<R: Read + Seek> ErebusReader<R> {
         Ok(out)
     }
 
-    pub fn read_validity(&mut self, len: usize) -> Result<Vec<u8>, ErebusError> {
+    pub fn read_validity(&mut self, len: usize) -> ErrorResult<Vec<u8>> {
         self.read_bytes(len)
     }
 
-    pub fn seek_abs(&mut self, offset: u64) -> Result<(), ErebusError> {
+    pub fn seek_abs(&mut self, offset: u64) -> ErrorResult<()> {
         self.inner.seek(SeekFrom::Start(offset))?;
         Ok(())
     }
@@ -101,7 +101,7 @@ impl<R: Read + Seek> ErebusReader<R> {
     pub fn read_stream_bytes(
         &mut self,
         compression: CompressionType,
-    ) -> Result<Vec<u8>, ErebusError> {
+    ) -> ErrorResult<Vec<u8>> {
         match compression {
             CompressionType::None => {
                 // Caller must know how many bytes to read.
@@ -153,7 +153,7 @@ impl<R: Read + Seek> ErebusReader<R> {
         &mut self,
         n: usize,
         compression: CompressionType,
-    ) -> Result<Vec<i16>, ErebusError> {
+    ) -> ErrorResult<Vec<i16>> {
         match compression {
             CompressionType::None => self.read_i16_stream(n),
 
@@ -178,7 +178,7 @@ impl<R: Read + Seek> ErebusReader<R> {
         &mut self,
         n: usize,
         compression: CompressionType,
-    ) -> Result<Vec<u64>, ErebusError> {
+    ) -> ErrorResult<Vec<u64>> {
         match compression {
             CompressionType::None => self.read_u64_stream(n),
 

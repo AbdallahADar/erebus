@@ -6,3 +6,5 @@ mod affine;
 mod power;
 mod logs;
 mod trig;
+mod cut;
+mod compare;

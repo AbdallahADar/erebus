@@ -2091,3 +2091,808 @@ fn test_f64_tan_range_full() {
 
     assert_vd_f64_matches_range(&out, &input, &validity, 1, 3, |x| x.tan());
 }
+
+#[test]
+fn test_i64_asin_owned() {
+    let input = vec![-1, 0, 1, 2];
+    let validity = vec![true; 4];
+
+    let v = vd_i64(input.clone(), validity.clone());
+    let out = v.asin();
+
+    assert_vd_f64_matches(
+        &out,
+        &input.iter().map(|&x| x as f64).collect::<Vec<_>>(),
+        &validity,
+        |x| x.asin(),
+    );
+}
+
+#[test]
+fn test_i64_acos_range_full() {
+    let input = vec![-1, 0, 1, 2];
+    let validity = vec![true; 4];
+
+    let v = vd_i64(input.clone(), validity.clone());
+    let out = v.acos_range(1, 4, true);
+
+    assert_vd_f64_matches_range(
+        &out,
+        &input.iter().map(|&x| x as f64).collect::<Vec<_>>(),
+        &validity,
+        1,
+        4,
+        |x| x.acos(),
+    );
+}
+
+#[test]
+fn test_i64_atan_owned() {
+    let input = vec![-10, -1, 0, 1, 10];
+    let validity = vec![true; 5];
+
+    let v = vd_i64(input.clone(), validity.clone());
+    let out = v.atan();
+
+    assert_vd_f64_matches(
+        &out,
+        &input.iter().map(|&x| x as f64).collect::<Vec<_>>(),
+        &validity,
+        |x| x.atan(),
+    );
+}
+
+#[test]
+fn test_f64_asin_owned() {
+    let input = vec![-1.0, 0.0, 1.0, 1.5];
+    let validity = vec![true; 4];
+
+    let v = vd_f64(input.clone(), validity.clone());
+    let out = v.asin();
+
+    assert_vd_f64_matches(&out, &input, &validity, |x| x.asin());
+}
+
+#[test]
+fn test_f64_acos_inplace() {
+    let input = vec![-1.0, 0.0, 1.0, 1.5];
+    let validity = vec![true; 4];
+
+    let mut v = vd_f64(input.clone(), validity.clone());
+    v.acos_inplace();
+
+    assert_vd_f64_matches(&v, &input, &validity, |x| x.acos());
+}
+
+#[test]
+fn test_f64_atan_range_full() {
+    let input = vec![-10.0, -1.0, 0.0, 1.0, 10.0];
+    let validity = vec![true; 5];
+
+    let v = vd_f64(input.clone(), validity.clone());
+    let out = v.atan_range(1, 4, true);
+
+    assert_vd_f64_matches_range(&out, &input, &validity, 1, 4, |x| x.atan());
+}
+
+#[test]
+fn test_i64_sinh_owned() {
+    let input = vec![-5, -1, 0, 1, 5];
+    let validity = vec![true; 5];
+
+    let v = vd_i64(input.clone(), validity.clone());
+    let out = v.sinh();
+
+    assert_vd_f64_matches(
+        &out,
+        &input.iter().map(|&x| x as f64).collect::<Vec<_>>(),
+        &validity,
+        |x| x.sinh(),
+    );
+}
+
+#[test]
+fn test_i64_cosh_range_full() {
+    let input = vec![-5, -1, 0, 1, 5];
+    let validity = vec![true; 5];
+
+    let v = vd_i64(input.clone(), validity.clone());
+    let out = v.cosh_range(1, 4, true);
+
+    assert_vd_f64_matches_range(
+        &out,
+        &input.iter().map(|&x| x as f64).collect::<Vec<_>>(),
+        &validity,
+        1,
+        4,
+        |x| x.cosh(),
+    );
+}
+
+#[test]
+fn test_i64_tanh_owned() {
+    let input = vec![-10, -1, 0, 1, 10];
+    let validity = vec![true; 5];
+
+    let v = vd_i64(input.clone(), validity.clone());
+    let out = v.tanh();
+
+    assert_vd_f64_matches(
+        &out,
+        &input.iter().map(|&x| x as f64).collect::<Vec<_>>(),
+        &validity,
+        |x| x.tanh(),
+    );
+}
+
+#[test]
+fn test_f64_sinh_owned() {
+    let input = vec![-3.0, -1.0, 0.0, 1.0, 3.0];
+    let validity = vec![true; 5];
+
+    let v = vd_f64(input.clone(), validity.clone());
+    let out = v.sinh();
+
+    assert_vd_f64_matches(&out, &input, &validity, |x| x.sinh());
+}
+
+#[test]
+fn test_f64_cosh_inplace() {
+    let input = vec![-3.0, -1.0, 0.0, 1.0, 3.0];
+    let validity = vec![true; 5];
+
+    let mut v = vd_f64(input.clone(), validity.clone());
+    v.cosh_inplace();
+
+    assert_vd_f64_matches(&v, &input, &validity, |x| x.cosh());
+}
+
+#[test]
+fn test_f64_tanh_range_full() {
+    let input = vec![-10.0, -1.0, 0.0, 1.0, 10.0];
+    let validity = vec![true; 5];
+
+    let v = vd_f64(input.clone(), validity.clone());
+    let out = v.tanh_range(1, 4, true);
+
+    assert_vd_f64_matches_range(&out, &input, &validity, 1, 4, |x| x.tanh());
+}
+
+#[test]
+fn test_i64_asinh_owned() {
+    let input = vec![-10, -1, 0, 1, 10];
+    let validity = vec![true; 5];
+
+    let v = vd_i64(input.clone(), validity.clone());
+    let out = v.asinh();
+
+    assert_vd_f64_matches(
+        &out,
+        &input.iter().map(|&x| x as f64).collect::<Vec<_>>(),
+        &validity,
+        |x| x.asinh(),
+    );
+}
+
+#[test]
+fn test_i64_acosh_range_full() {
+    let input = vec![0, 1, 2, 10];
+    let validity = vec![true; 4];
+
+    let v = vd_i64(input.clone(), validity.clone());
+    let out = v.acosh_range(1, 4, true);
+
+    assert_vd_f64_matches_range(
+        &out,
+        &input.iter().map(|&x| x as f64).collect::<Vec<_>>(),
+        &validity,
+        1,
+        4,
+        |x| x.acosh(),
+    );
+}
+
+#[test]
+fn test_i64_atanh_owned() {
+    let input = vec![-2, -1, 0, 1, 2];
+    let validity = vec![true; 5];
+
+    let v = vd_i64(input.clone(), validity.clone());
+    let out = v.atanh();
+
+    assert_vd_f64_matches(
+        &out,
+        &input.iter().map(|&x| x as f64).collect::<Vec<_>>(),
+        &validity,
+        |x| x.atanh(),
+    );
+}
+
+#[test]
+fn test_f64_asinh_inplace() {
+    let input = vec![-10.0, -1.0, 0.0, 1.0, 10.0];
+    let validity = vec![true; 5];
+
+    let mut v = vd_f64(input.clone(), validity.clone());
+    v.asinh_inplace();
+
+    assert_vd_f64_matches(&v, &input, &validity, |x| x.asinh());
+}
+
+#[test]
+fn test_f64_acosh_owned() {
+    let input = vec![0.5, 1.0, 2.0, 10.0];
+    let validity = vec![true; 4];
+
+    let v = vd_f64(input.clone(), validity.clone());
+    let out = v.acosh();
+
+    assert_vd_f64_matches(&out, &input, &validity, |x| x.acosh());
+}
+
+#[test]
+fn test_f64_atanh_range_full() {
+    let input = vec![-2.0, -0.5, 0.0, 0.5, 2.0];
+    let validity = vec![true; 5];
+
+    let v = vd_f64(input.clone(), validity.clone());
+    let out = v.atanh_range(1, 4, true);
+
+    assert_vd_f64_matches_range(&out, &input, &validity, 1, 4, |x| x.atanh());
+}
+
+#[test]
+fn test_f64_cut_unbounded_right() {
+    let v = vd_f64(
+        vec![-2.0, -1.0, 0.0, 1.0, 2.0],
+        vec![true; 5],
+    );
+
+    let out = v.cut(&[-1.0, 1.0], true, false).unwrap();
+
+    assert_eq!(out.data, vec![0, 0, 1, 1, 2]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1, 1, 1]);
+}
+
+#[test]
+fn test_f64_cut_unbounded_left() {
+    let v = vd_f64(
+        vec![-2.0, -1.0, 0.0, 1.0, 2.0],
+        vec![true; 5],
+    );
+
+    let out = v.cut(&[-1.0, 1.0], false, false).unwrap();
+
+    assert_eq!(out.data, vec![0, 1, 1, 2, 2]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1, 1, 1]);
+}
+
+#[test]
+fn test_f64_cut_bounded_right() {
+    let v = vd_f64(
+        vec![-2.0, -1.0, 0.0, 1.0, 2.0],
+        vec![true; 5],
+    );
+
+    let out = v.cut(&[-1.0, 1.0], true, true).unwrap();
+
+    assert_eq!(out.data, vec![0, 0, 0, 0, 0]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 0, 1, 1, 0]);
+}
+
+#[test]
+fn test_f64_cut_bounded_left() {
+    let v = vd_f64(
+        vec![-2.0, -1.0, 0.0, 1.0, 2.0],
+        vec![true; 5],
+    );
+
+    let out = v.cut(&[-1.0, 1.0], false, true).unwrap();
+
+    assert_eq!(out.data, vec![0, 0, 0, 0, 0]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1, 1, 0, 0]);
+}
+
+#[test]
+fn test_f64_cut_preserves_existing_na() {
+    let v = vd_f64(
+        vec![-2.0, 0.0, 2.0],
+        vec![true, false, true],
+    );
+
+    let out = v.cut(&[-1.0, 1.0], true, false).unwrap();
+
+    assert_eq!(out.data, vec![0, 1, 2]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_i64_cut_unbounded_right() {
+    let v = vd_i64(
+        vec![-2, -1, 0, 1, 2],
+        vec![true; 5],
+    );
+
+    let out = v.cut(&[-1.0, 1.0], true, false).unwrap();
+
+    assert_eq!(out.data, vec![0, 0, 1, 1, 2]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1, 1, 1]);
+}
+
+#[test]
+fn test_i64_cut_unbounded_left() {
+    let v = vd_i64(
+        vec![-2, -1, 0, 1, 2],
+        vec![true; 5],
+    );
+
+    let out = v.cut(&[-1.0, 1.0], false, false).unwrap();
+
+    assert_eq!(out.data, vec![0, 1, 1, 2, 2]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1, 1, 1]);
+}
+
+#[test]
+fn test_i64_cut_bounded_right() {
+    let v = vd_i64(
+        vec![-2, -1, 0, 1, 2],
+        vec![true; 5],
+    );
+
+    let out = v.cut(&[-1.0, 1.0], true, true).unwrap();
+
+    assert_eq!(out.data, vec![0, 0, 0, 0, 0]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 0, 1, 1, 0]);
+}
+
+#[test]
+fn test_i64_cut_bounded_left() {
+    let v = vd_i64(
+        vec![-2, -1, 0, 1, 2],
+        vec![true; 5],
+    );
+
+    let out = v.cut(&[-1.0, 1.0], false, true).unwrap();
+
+    assert_eq!(out.data, vec![0, 0, 0, 0, 0]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1, 1, 0, 0]);
+}
+
+#[test]
+fn test_i64_cut_preserves_existing_na() {
+    let v = vd_i64(
+        vec![-2, 0, 2],
+        vec![true, false, true],
+    );
+
+    let out = v.cut(&[-1.0, 1.0], true, false).unwrap();
+
+    assert_eq!(out.data, vec![0, 1, 2]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1]);
+}
+
+#[test]
+fn test_f64_cut_labels_unbounded_right() {
+    let v = vd_f64(vec![-2.0, -1.0, 0.0, 1.0, 2.0], vec![true; 5]);
+    let bins = vec![-1.0, 1.0];
+    let labels = vec!["A", "B", "C"].into_iter().map(String::from).collect::<Vec<_>>();
+
+    let out = v.cut_labels(&bins, &labels, true, false).unwrap();
+
+    assert_eq!(
+        out.data,
+        vec!["A", "A", "B", "B", "C"]
+    );
+    assert_eq!(out.validity.to_vec(), bitvec![1,1,1,1,1]);
+}
+
+#[test]
+fn test_f64_cut_labels_unbounded_left() {
+    let v = vd_f64(vec![-1.0, 0.0, 1.0], vec![true; 3]);
+    let bins = vec![-1.0, 1.0];
+    let labels = vec!["A", "B", "C"].into_iter().map(String::from).collect::<Vec<_>>();
+
+    let out = v.cut_labels(&bins, &labels, false, false).unwrap();
+
+    assert_eq!(
+        out.data,
+        vec!["B", "B", "C"]
+    );
+    assert_eq!(out.validity.to_vec(), bitvec![1,1,1]);
+}
+
+#[test]
+fn test_f64_cut_labels_bounded_right() {
+    let v = vd_f64(vec![-2.0, -1.0, 0.0, 1.0, 2.0], vec![true; 5]);
+    let bins = vec![-1.0, 1.0];
+    let labels = vec!["MID"].into_iter().map(String::from).collect::<Vec<_>>();
+
+    let out = v.cut_labels(&bins, &labels, true, true).unwrap();
+
+    assert_eq!(
+        out.data,
+        vec!["MID", "MID", "MID", "MID", "MID"]
+    );
+    assert_eq!(out.validity.to_vec(), bitvec![0,0,1,1,0]);
+}
+
+#[test]
+fn test_f64_cut_labels_bounded_left() {
+    let v = vd_f64(vec![-2.0, -1.0, 0.0, 1.0, 2.0], vec![true; 5]);
+    let bins = vec![-1.0, 1.0];
+    let labels = vec!["MID"].into_iter().map(String::from).collect::<Vec<_>>();
+
+    let out = v.cut_labels(&bins, &labels, false, true).unwrap();
+
+    assert_eq!(
+        out.data,
+        vec!["MID", "MID", "MID", "MID", "MID"]
+    );
+    assert_eq!(out.validity.to_vec(), bitvec![0,1,1,0,0]);
+}
+
+#[test]
+fn test_i64_cut_labels_unbounded_right() {
+    let v = vd_i64(vec![-2, -1, 0, 1, 2], vec![true; 5]);
+    let bins = vec![-1.0, 1.0];
+    let labels = vec!["A", "B", "C"].into_iter().map(String::from).collect::<Vec<_>>();
+
+    let out = v.cut_labels(&bins, &labels, true, false).unwrap();
+
+    assert_eq!(
+        out.data,
+        vec!["A", "A", "B", "B", "C"]
+    );
+    assert_eq!(out.validity.to_vec(), bitvec![1,1,1,1,1]);
+}
+
+#[test]
+fn test_i64_cut_labels_bounded_left() {
+    let v = vd_i64(vec![-2, -1, 0, 1, 2], vec![true; 5]);
+    let bins = vec![-1.0, 1.0];
+    let labels = vec!["MID"].into_iter().map(String::from).collect::<Vec<_>>();
+
+    let out = v.cut_labels(&bins, &labels, false, true).unwrap();
+
+    assert_eq!(
+        out.data,
+        vec!["MID", "MID", "MID", "MID", "MID"]
+    );
+    assert_eq!(out.validity.to_vec(), bitvec![0,1,1,0,0]);
+}
+
+#[test]
+fn test_cut_labels_invalid_label_len_bounded() {
+    let v = vd_f64(vec![0.0], vec![true]);
+    let bins = vec![-1.0, 1.0];
+    let labels = vec!["A".to_string(), "B".to_string()];
+
+    let err = v.cut_labels(&bins, &labels, true, true).unwrap_err();
+
+    matches!(err, ErebusError::InvalidCutLabels { .. });
+}
+
+#[test]
+fn test_cut_labels_invalid_label_len_unbounded() {
+    let v = vd_f64(vec![0.0], vec![true]);
+    let bins = vec![-1.0, 1.0];
+    let labels = vec!["A".to_string()];
+
+    let err = v.cut_labels(&bins, &labels, true, false).unwrap_err();
+
+    matches!(err, ErebusError::InvalidCutLabels { .. });
+}
+
+#[test]
+fn test_cut_labels_non_monotonic_bins() {
+    let v = vd_f64(vec![0.0], vec![true]);
+    let bins = vec![1.0, -1.0];
+    let labels = vec!["A".to_string(), "B".to_string(), "C".to_string()];
+
+    let err = v.cut_labels(&bins, &labels, true, false).unwrap_err();
+
+    matches!(err, ErebusError::InvalidCutBins { .. });
+}
+
+#[test]
+fn test_f64_reciprocal_owned() {
+    let input = vec![2.0, -4.0, 0.0, 0.5];
+    let validity = vec![true; 4];
+
+    let v = vd_f64(input.clone(), validity.clone());
+    let out = v.reciprocal();
+
+    assert_vd_f64_matches(&out, &input, &validity, |x| 1.0 / x);
+}
+
+#[test]
+fn test_f64_reciprocal_inplace() {
+    let input = vec![1.0, 2.0, 0.0, -0.5];
+    let validity = vec![true; 4];
+
+    let mut v = vd_f64(input.clone(), validity.clone());
+    v.reciprocal_inplace();
+
+    assert_vd_f64_matches(&v, &input, &validity, |x| 1.0 / x);
+}
+
+#[test]
+fn test_f64_reciprocal_range_full() {
+    let input = vec![1.0, 2.0, 0.0, 4.0];
+    let validity = vec![true; 4];
+
+    let v = vd_f64(input.clone(), validity.clone());
+    let out = v.reciprocal_range(1, 3, true);
+
+    assert_vd_f64_matches_range(&out, &input, &validity, 1, 3, |x| 1.0 / x);
+}
+
+#[test]
+fn test_i64_reciprocal_owned() {
+    let input = vec![1, 2, 0, -4];
+    let validity = vec![true; 4];
+
+    let v = vd_i64(input.clone(), validity.clone());
+    let out = v.reciprocal();
+
+    assert_vd_f64_matches(
+        &out,
+        &input.iter().map(|&x| x as f64).collect::<Vec<_>>(),
+        &validity,
+        |x| 1.0 / x
+    );
+}
+
+#[test]
+fn test_i64_reciprocal_range() {
+    let input = vec![1, 2, 0, -4];
+    let validity = vec![true; 4];
+
+    let v = vd_i64(input.clone(), validity.clone());
+    let out = v.reciprocal_range(1, 4, true);
+
+    assert_vd_f64_matches_range(
+        &out,
+        &input.iter().map(|&x| x as f64).collect::<Vec<_>>(),
+        &validity,
+        1,
+        4,
+        |x| 1.0 / x
+    );
+}
+
+#[test]
+fn test_i64_cmp_owned() {
+    let v = vd_i64(vec![1, 2, 3, 4], vec![true, false, true, true]);
+
+    let lt = v.lt(3);
+    assert_eq!(lt.data, vec![true, true, false, false]);
+    assert_eq!(lt.validity.to_vec(), bitvec![1, 0, 1, 1]);
+
+    let lte = v.lte(3);
+    assert_eq!(lte.data, vec![true, true, true, false]);
+
+    let gt = v.gt(3);
+    assert_eq!(gt.data, vec![false, false, false, true]);
+
+    let gte = v.gte(3);
+    assert_eq!(gte.data, vec![false, false, true, true]);
+}
+
+#[test]
+fn test_i64_cmp_range_full() {
+    let v = vd_i64(vec![1, 2, 3, 4], vec![true; 4]);
+
+    let out = v.gt_range(2, 1, 3, true);
+
+    assert_eq!(out.data, vec![false, false, true, false]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1, 1, 0]);
+}
+
+#[test]
+fn test_i64_cmp_range_slice_only() {
+    let v = vd_i64(vec![1, 2, 3, 4], vec![true; 4]);
+
+    let out = v.lte_range(2, 1, 3, false);
+
+    assert_eq!(out.data, vec![true, false]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1]);
+}
+
+#[test]
+fn test_f64_cmp_owned() {
+    let v = vd_f64(vec![1.0, 2.5, 3.0, 4.0], vec![true, false, true, true]);
+
+    let lt = v.lt(3.0);
+    assert_eq!(lt.data, vec![true, true, false, false]);
+    assert_eq!(lt.validity.to_vec(), bitvec![1, 0, 1, 1]);
+
+    let lte = v.lte(3.0);
+    assert_eq!(lte.data, vec![true, true, true, false]);
+
+    let gt = v.gt(3.0);
+    assert_eq!(gt.data, vec![false, false, false, true]);
+
+    let gte = v.gte(3.0);
+    assert_eq!(gte.data, vec![false, false, true, true]);
+}
+
+#[test]
+fn test_f64_cmp_range_full() {
+    let v = vd_f64(vec![1.0, 2.0, 3.0, 4.0], vec![true; 4]);
+
+    let out = v.lt_range(3.0, 1, 3, true);
+
+    assert_eq!(out.data, vec![false, true, false, false]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1, 1, 0]);
+}
+
+#[test]
+fn test_f64_cmp_range_slice_only() {
+    let v = vd_f64(vec![1.0, 2.0, 3.0, 4.0], vec![true; 4]);
+
+    let out = v.gte_range(2.0, 1, 3, false);
+
+    assert_eq!(out.data, vec![true, true]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1]);
+}
+
+#[test]
+fn test_i64_threshold_owned() {
+    let v = vd_i64(vec![1, 3, 5, 7], vec![true, false, true, true]);
+
+    let out = v.threshold(4.0);
+
+    assert_eq!(out.data, vec![false, false, true, true]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1, 1]);
+}
+
+#[test]
+fn test_i64_threshold_range_full() {
+    let v = vd_i64(vec![1, 3, 5, 7], vec![true; 4]);
+
+    let out = v.threshold_range(4.0, 1, 3, true);
+
+    assert_eq!(out.data, vec![false, false, true, false]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1, 1, 0]);
+}
+
+#[test]
+fn test_i64_between_owned() {
+    let v = vd_i64(vec![1, 3, 5, 7], vec![true; 4]);
+
+    let out = v.between(3, 6);
+
+    assert_eq!(out.data, vec![false, true, true, false]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1, 1]);
+}
+
+#[test]
+fn test_f64_threshold_owned() {
+    let v = vd_f64(vec![1.0, 2.5, 5.0, 7.0], vec![true, false, true, true]);
+
+    let out = v.threshold(3.0);
+
+    assert_eq!(out.data, vec![false, false, true, true]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 0, 1, 1]);
+}
+
+#[test]
+fn test_f64_threshold_eq_range_full() {
+    let v = vd_f64(vec![1.0, 2.5, 5.0, 7.0], vec![true; 4]);
+
+    let out = v.threshold_eq_range(5.0, 1, 3, true);
+
+    assert_eq!(out.data, vec![false, false, true, false]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1, 1, 0]);
+}
+
+#[test]
+fn test_f64_between_owned() {
+    let v = vd_f64(vec![1.0, 2.5, 5.0, 7.0], vec![true; 4]);
+
+    let out = v.between(2.0, 6.0);
+
+    assert_eq!(out.data, vec![false, true, true, false]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1, 1]);
+}
+
+#[test]
+fn test_f64_binarize_owned() {
+    let v = vd_f64(vec![1.0, 5.0, 10.0, -2.0], vec![true, true, false, true]);
+
+    let out = v.binarize(3.0);
+
+    assert_eq!(out.data, vec![0, 1, 1, 0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 0, 1]);
+}
+
+#[test]
+fn test_f64_binarize_eq_owned() {
+    let v = vd_f64(vec![3.0, 5.0, 3.0], vec![true; 3]);
+
+    let out = v.binarize_eq(3.0);
+
+    assert_eq!(out.data, vec![1, 1, 1]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1]);
+}
+
+#[test]
+fn test_f64_binarize_range_slice_only() {
+    let v = vd_f64(vec![1.0, 5.0, 10.0, -2.0], vec![true; 4]);
+
+    let out = v.binarize_range(3.0, 1, 3, false);
+
+    assert_eq!(out.data, vec![1, 1]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1]);
+}
+
+#[test]
+fn test_f64_binarize_range_full() {
+    let v = vd_f64(vec![1.0, 5.0, 10.0, -2.0], vec![true; 4]);
+
+    let out = v.binarize_range(3.0, 1, 3, true);
+
+    assert_eq!(out.data, vec![0, 1, 1, 0]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1, 1, 0]);
+}
+
+#[test]
+fn test_f64_binarize_eq_range_full_with_nulls() {
+    let v = vd_f64(vec![3.0, 2.0, 3.0, 4.0], vec![true, false, true, true]);
+
+    let out = v.binarize_eq_range(3.0, 1, 4, true);
+
+    assert_eq!(out.data, vec![0, 0, 1, 1]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 0, 1, 1]);
+}
+
+#[test]
+fn test_i64_binarize_owned() {
+    let v = vd_i64(vec![1, 5, 10, -2], vec![true, true, false, true]);
+
+    let out = v.binarize(3.0);
+
+    assert_eq!(out.data, vec![0, 1, 1, 0]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 0, 1]);
+}
+
+#[test]
+fn test_i64_binarize_eq_owned() {
+    let v = vd_i64(vec![3, 5, 10, 3], vec![true; 4]);
+
+    let out = v.binarize_eq(3.0);
+
+    assert_eq!(out.data, vec![1, 1, 1, 1]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1, 1, 1]);
+}
+
+#[test]
+fn test_i64_binarize_range_slice_only() {
+    let v = vd_i64(vec![1, 5, 10, -2], vec![true; 4]);
+
+    let out = v.binarize_range(3.0, 1, 3, false);
+
+    assert_eq!(out.data, vec![1, 1]);
+    assert_eq!(out.validity.to_vec(), bitvec![1, 1]);
+}
+
+#[test]
+fn test_i64_binarize_range_full() {
+    let v = vd_i64(vec![1, 5, 10, -2], vec![true; 4]);
+
+    let out = v.binarize_range(3.0, 1, 3, true);
+
+    assert_eq!(out.data, vec![0, 1, 1, 0]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 1, 1, 0]);
+}
+
+#[test]
+fn test_i64_binarize_eq_range_full_with_nulls() {
+    let v = vd_i64(vec![3, 2, 3, 4], vec![true, false, true, true]);
+
+    let out = v.binarize_eq_range(3.0, 1, 4, true);
+
+    assert_eq!(out.data, vec![0, 0, 1, 1]);
+    assert_eq!(out.validity.to_vec(), bitvec![0, 0, 1, 1]);
+}

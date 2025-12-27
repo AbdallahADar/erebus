@@ -36,7 +36,7 @@ pub enum ObjectType {
 }
 
 impl ObjectType {
-    pub fn from_u8(v: u8) -> Result<Self, ErebusError> {
+    pub fn from_u8(v: u8) -> ErrorResult<Self> {
         match v {
             1 => Ok(Self::Vector),
             2 => Ok(Self::VectorData),
@@ -64,7 +64,7 @@ pub enum BaseType {
 }
 
 impl BaseType {
-    pub fn from_u8(v: u8) -> Result<Self, ErebusError> {
+    pub fn from_u8(v: u8) -> ErrorResult<Self> {
         match v {
             1 => Ok(Self::F64),
             2 => Ok(Self::I64),
@@ -85,7 +85,7 @@ pub enum EncodingType {
 }
 
 impl EncodingType {
-    pub fn from_u8(v: u8) -> Result<Self, ErebusError> {
+    pub fn from_u8(v: u8) -> ErrorResult<Self> {
         match v {
             1 => Ok(Self::F64Raw),
             2 => Ok(Self::F64Factored),
@@ -104,7 +104,7 @@ pub enum CompressionType {
 }
 
 impl CompressionType {
-    pub fn from_u8(v: u8) -> Result<Self, ErebusError> {
+    pub fn from_u8(v: u8) -> ErrorResult<Self> {
         match v {
             0 => Ok(Self::None),
             1 => Ok(Self::Zstd),
@@ -135,7 +135,7 @@ impl ErebusHeader {
     }
 
     /// Write the 4-byte global header
-    pub fn write<W: std::io::Write>(&self, w: &mut W) -> Result<(), ErebusError> {
+    pub fn write<W: std::io::Write>(&self, w: &mut W) -> ErrorResult<()> {
         w.write_all(&[self.object_type.to_u8()])?;
         w.write_all(&[self.base_type.to_u8()])?;
         w.write_all(&[self.encoding.to_u8()])?;
@@ -144,7 +144,7 @@ impl ErebusHeader {
     }
 
     /// Read the 4-byte global header
-    pub fn read<R: std::io::Read>(r: &mut R) -> Result<Self, ErebusError> {
+    pub fn read<R: std::io::Read>(r: &mut R) -> ErrorResult<Self> {
         let mut buf = [0u8; 4];
         r.read_exact(&mut buf)?;
 

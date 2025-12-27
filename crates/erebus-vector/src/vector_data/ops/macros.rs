@@ -238,4 +238,91 @@ macro_rules! impl_unary_op {
 
 }
 
+#[macro_export]
+macro_rules! impl_numeric_cmp_op {
+
+    (noparams,
+        $name:ident, $name_range:ident,
+        $out_ty:ty,
+        $expr_owned:expr
+    ) => {
+        #[inline]
+        pub fn $name(&self) -> VectorData<$out_ty> {
+            self.map_unary_owned($expr_owned)
+        }
+
+        #[inline]
+        pub fn $name_range(
+            &self,
+            start: usize,
+            end: usize,
+            full: bool,
+        ) -> VectorData<$out_ty> {
+            self.map_unary_range_owned_na_outside(
+                start,
+                end,
+                full,
+                $expr_owned,
+            )
+        }
+    };
+
+    (params,
+        $name:ident, $name_range:ident,
+        ($($param_decl:tt)*) -> ($($param_pass:tt)*),
+        $out_ty:ty,
+        $expr_owned:expr
+    ) => {
+        #[inline]
+        pub fn $name(&self, $($param_decl)*) -> VectorData<$out_ty> {
+            self.map_unary_owned($expr_owned)
+        }
+
+        #[inline]
+        pub fn $name_range(
+            &self,
+            $($param_decl)*,
+            start: usize,
+            end: usize,
+            full: bool,
+        ) -> VectorData<$out_ty> {
+            self.map_unary_range_owned_na_outside(
+                start,
+                end,
+                full,
+                $expr_owned,
+            )
+        }
+    };
+
+    (params_valid,
+        $name:ident, $name_range:ident,
+        ($($param_decl:tt)*) -> ($($param_pass:tt)*),
+        $out_ty:ty,
+        $expr_owned:expr
+    ) => {
+        #[inline]
+        pub fn $name(&self, $($param_decl)*) -> VectorData<$out_ty> {
+            self.map_unary_owned_with_validity(|x| $expr_owned(x, $($param_pass)*))
+        }
+
+        #[inline]
+        pub fn $name_range(
+            &self,
+            $($param_decl)*,
+            start: usize,
+            end: usize,
+            full: bool,
+        ) -> VectorData<$out_ty> {
+            self.map_unary_range_owned_na_outside_with_validity(
+                start,
+                end,
+                full,
+                |x| $expr_owned(x, $($param_pass)*)
+            )
+        }
+    };
+}
+
 pub(crate) use impl_unary_op;
+pub(crate) use impl_numeric_cmp_op;

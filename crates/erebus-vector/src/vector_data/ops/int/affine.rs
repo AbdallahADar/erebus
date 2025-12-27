@@ -66,4 +66,19 @@ impl VectorData<i64> {
         }
     );
 
+    // -- Reciprocal --
+    impl_unary_op!(
+        noparams_valid, noinplace,
+        reciprocal, reciprocal_range,
+        f64,
+        |x: &i64| {
+            let y = 1.0 / (*x as f64);
+            if y.is_finite() {
+                (y, true)
+            } else {
+                (0.0, false)
+            }
+        }
+    );
+
 }

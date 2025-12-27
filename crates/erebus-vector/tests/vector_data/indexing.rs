@@ -128,11 +128,11 @@ fn test_bool_index_mismatched_length() {
     let result = vd.bool_index(&mask);
 
     assert!(result.is_err());
-    if let Err(ErebusError::VectorLengthMismatch { expected, found }) = result {
+    if let Err(ErebusError::LengthMismatch { expected, found }) = result {
         assert_eq!(expected, 3);
         assert_eq!(found, 2);
     } else {
-        panic!("Expected VectorLengthMismatch error");
+        panic!("Expected LengthMismatch error");
     }
 }
 

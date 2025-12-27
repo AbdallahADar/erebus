@@ -375,4 +375,115 @@ where
         ])
     }
 
+    #[cfg_attr(feature = "internal", visibility::make(pub))]
+    #[inline]
+    pub(crate) fn map_unary_range_owned_na_outside<U, F>(
+        &self,
+        start: usize,
+        end: usize,
+        full: bool,
+        f: F,
+    ) -> VectorData<U>
+    where
+        F: Fn(&T) -> U + Sync + Send,
+        U: Clone + Default + Send + Sync + 'static,
+    {
+        let n = self.data.len();
+        if start >= end || start >= n {
+            return VectorData::empty();
+        }
+        let end = end.min(n);
+        let range_len = end - start;
+
+        let (use_parallel, chunk) = should_parallelize(range_len);
+        let t0 = Instant::now();
+
+        // Apply f(x) on [start, end)
+        let mid_data: Vec<U> = if use_parallel {
+            let v = self.data[start..end]
+                .par_chunks(chunk)
+                .flat_map_iter(|chunk| chunk.iter().map(|x| f(x)))
+                .collect();
+            record_chunk_stats(range_len, t0.elapsed().as_micros());
+            v
+        } else {
+            self.data[start..end].iter().map(|x| f(x)).collect()
+        };
+
+        let mid_validity: BitVec = self.validity[start..end].to_bitvec();
+
+        if !full {
+            return VectorData {
+                data: mid_data,
+                validity: mid_validity,
+            };
+        }
+
+        let mut data = vec![U::default(); n];
+        let mut validity: BitVec = bitvec![0; n];
+
+        data[start..end].clone_from_slice(&mid_data);
+        validity[start..end].clone_from_bitslice(&mid_validity);
+
+        VectorData { data, validity }
+    }
+
+    #[cfg_attr(feature = "internal", visibility::make(pub))]
+    #[inline]
+    pub(crate) fn map_unary_range_owned_na_outside_with_validity<U, F>(
+        &self,
+        start: usize,
+        end: usize,
+        full: bool,
+        f: F,
+    ) -> VectorData<U>
+    where
+        F: Fn(&T) -> (U, bool) + Sync + Send,
+        U: Clone + Default + Send + Sync + 'static,
+    {
+        let n = self.data.len();
+        if start >= end || start >= n {
+            return VectorData::empty();
+        }
+        let end = end.min(n);
+        let range_len = end - start;
+
+        let (use_parallel, chunk) = should_parallelize(range_len);
+        let t0 = Instant::now();
+
+        // Apply f(x) on [start, end)
+        let (mid_data, mid_flags): (Vec<U>, Vec<bool>) = if use_parallel {
+            let out: (Vec<U>, Vec<bool>) = self.data[start..end]
+                .par_chunks(chunk)
+                .flat_map_iter(|chunk| chunk.iter().map(|x| f(x)))
+                .unzip();
+            record_chunk_stats(range_len, t0.elapsed().as_micros());
+            out
+        } else {
+            self.data[start..end].iter().map(|x| f(x)).unzip()
+        };
+
+        // Merge validity for slice
+        let mid_validity: BitVec = self.validity[start..end]
+            .iter()
+            .zip(mid_flags.iter())
+            .map(|(orig, new)| *orig && *new)
+            .collect();
+
+        if !full {
+            return VectorData {
+                data: mid_data,
+                validity: mid_validity,
+            };
+        }
+
+        let mut data = vec![U::default(); n];
+        let mut validity: BitVec = bitvec![0; n];
+
+        data[start..end].clone_from_slice(&mid_data);
+        validity[start..end].clone_from_bitslice(&mid_validity);
+
+        VectorData { data, validity }
+    }
+
 }

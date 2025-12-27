@@ -10,6 +10,8 @@ pub use std::sync::Arc;
 pub use bitvec::prelude::*;
 
 // === Erebus core types ===
-pub use crate::error::ErebusError;
+pub use crate::errors::ErebusError;
 pub use crate::traits::*;
 pub use crate::runtime::*;
+pub use crate::algorithms::*;
+pub use crate::result::*;

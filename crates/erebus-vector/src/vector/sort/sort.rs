@@ -54,7 +54,7 @@ where
         &self,
         ascending: bool,
         algo: Option<&str>,
-    ) -> Result<Self, ErebusError> {
+    ) -> ErrorResult<Self> {
         let idx = self.sort_indices(ascending, algo);
         self.reorder(&idx)
     }
@@ -74,18 +74,18 @@ where
         &mut self,
         ascending: bool,
         algo: Option<&str>,
-    ) -> Result<(), ErebusError> {
+    ) -> ErrorResult<()> {
         let idx = self.sort_indices(ascending, algo);
         self.reorder_inplace(&idx)
     }
 
     #[inline]
-    pub fn sort_by(&self, indices: &[usize]) -> Result<Self, ErebusError> {
+    pub fn sort_by(&self, indices: &[usize]) -> ErrorResult<Self> {
         self.reorder(indices)
     }
 
     #[inline]
-    pub fn sort_by_inplace(&mut self, indices: &[usize]) -> Result<(), ErebusError> {
+    pub fn sort_by_inplace(&mut self, indices: &[usize]) -> ErrorResult<()> {
         self.reorder_inplace(indices)
     }
 }

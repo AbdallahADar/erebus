@@ -32,11 +32,11 @@ impl<T: Clone + Default> VectorData<T> {
     }
 
     /// Reorder VectorData given indices
-    pub fn reorder(&self, indices: &[usize]) -> Result<Self, ErebusError> {
+    pub fn reorder(&self, indices: &[usize]) -> ErrorResult<Self> {
         let n = self.len();
 
         if indices.len() != n {
-            return Err(ErebusError::VectorLengthMismatch {
+            return Err(ErebusError::LengthMismatch {
                 expected: n,
                 found: indices.len(),
             });
@@ -44,7 +44,10 @@ impl<T: Clone + Default> VectorData<T> {
 
         for &i in indices {
             if i >= n {
-                return Err(ErebusError::IndexOutOfBounds(i));
+                return Err(ErebusError::IndexOutOfBounds {
+                    index: i,
+                    size: n,
+                });
             }
         }
 
@@ -91,11 +94,11 @@ impl<T: Clone + Default> VectorData<T> {
     }
 
     /// Reorder VectorData inplace given indices
-    pub fn reorder_inplace(&mut self, indices: &[usize]) -> Result<(), ErebusError> {
+    pub fn reorder_inplace(&mut self, indices: &[usize]) -> ErrorResult<()> {
         let n = self.len();
 
         if indices.len() != n {
-            return Err(ErebusError::VectorLengthMismatch {
+            return Err(ErebusError::LengthMismatch {
                 expected: n,
                 found: indices.len(),
             });
@@ -103,7 +106,10 @@ impl<T: Clone + Default> VectorData<T> {
 
         for &i in indices {
             if i >= n {
-                return Err(ErebusError::IndexOutOfBounds(i));
+                return Err(ErebusError::IndexOutOfBounds {
+                    index: i,
+                    size: n,
+                });
             }
         }
 

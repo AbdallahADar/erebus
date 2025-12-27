@@ -32,7 +32,7 @@ impl F64RawHeader {
 
     /// Write this raw header to the underlying writer (after the global header).
     #[cfg_attr(feature = "internal", visibility::make(pub))]
-    pub(crate) fn write<W: Write>(&self, w: &mut W) -> Result<(), ErebusError> {
+    pub(crate) fn write<W: Write>(&self, w: &mut W) -> ErrorResult<()> {
         w.write_all(&self.n_rows.to_le_bytes())?;
         w.write_all(&self.validity_len.to_le_bytes())?;
         Ok(())
@@ -40,7 +40,7 @@ impl F64RawHeader {
 
     /// Read a raw header from the underlying reader (after the global header).
     #[cfg_attr(feature = "internal", visibility::make(pub))]
-    pub(crate) fn read<R: Read>(r: &mut R) -> Result<Self, ErebusError> {
+    pub(crate) fn read<R: Read>(r: &mut R) -> ErrorResult<Self> {
         let mut buf = [0u8; 8];
 
         // n_rows

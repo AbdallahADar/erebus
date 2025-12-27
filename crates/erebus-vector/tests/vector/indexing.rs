@@ -70,10 +70,11 @@ fn test_take_oob_error() {
     let err = v.take(&[0, 5, 1]).unwrap_err();
 
     match err {
-        ErebusError::OOB(msg) => {
-            assert!(msg.contains("out of bounds"));
+        ErebusError::IndexOutOfBounds { index, size } => {
+            assert_eq!(index, 5);
+            assert_eq!(size, 3);
         }
-        other => panic!("Expected OOB error, got {:?}", other),
+        other => panic!("Expected IndexOutOfBounds error, got {:?}", other),
     }
 }
 
@@ -104,11 +105,11 @@ fn test_bool_index_mismatch_error() {
     let err = v.bool_index(&bad_mask).unwrap_err();
 
     match err {
-        ErebusError::VectorLengthMismatch { expected, found } => {
+        ErebusError::LengthMismatch { expected, found } => {
             assert_eq!(expected, 3);
             assert_eq!(found, 2);
         }
-        other => panic!("Expected VectorLengthMismatch, got {:?}", other),
+        other => panic!("Expected LengthMismatch, got {:?}", other),
     }
 }
 

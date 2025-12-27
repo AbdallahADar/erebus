@@ -56,14 +56,14 @@ impl<T: Clone + Send + Sync + 'static> Vector<T> {
     }
 
     #[inline]
-    pub fn take(&self, idx: &[usize]) -> Result<Self, ErebusError> {
+    pub fn take(&self, idx: &[usize]) -> ErrorResult<Self> {
         let n = self.data.len();
         for &i in idx {
             if i >= n {
-                return Err(ErebusError::OOB(format!(
-                    "take(): index {} out of bounds (len={})",
-                    i, n
-                )));
+                return Err(ErebusError::IndexOutOfBounds {
+                    index: i,
+                    size: n,
+                });
             }
         }
         Ok(self._take(idx))
@@ -93,10 +93,10 @@ impl<T: Clone + Send + Sync + 'static> Vector<T> {
     }
 
     #[inline]
-    pub fn bool_index(&self, mask: &[bool]) -> Result<Self, ErebusError> {
+    pub fn bool_index(&self, mask: &[bool]) -> ErrorResult<Self> {
         let n = self.data.len();
         if mask.len() != n {
-            return Err(ErebusError::VectorLengthMismatch {
+            return Err(ErebusError::LengthMismatch {
                 expected: n,
                 found: mask.len(),
             });

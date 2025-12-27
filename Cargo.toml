@@ -4,6 +4,7 @@ members = [
     "crates/erebus-io",
 #    "crates/erebus-expr",
     "crates/erebus-vector",
+    "crates/erebus-time",
 #    "crates/erebus-table",
 #    "crates/erebus-matrix",
 #    "crates/erebus-portfolio",

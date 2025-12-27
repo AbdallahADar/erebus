@@ -2,34 +2,49 @@ Keep track of ideas here:
 
 No set format, free flowing ideas.
 
--- Latest stopping point: Affine funcs
--- Next step: With validity versions starting power
+Decisions made:
+- Infinite generated during calculation gets converted to NA in VD
+
+
+-- Latest stopping point: Cut func
+-- Next step:
+
+-- TODO: When to define function as unsafe vs
+         a block within function as unsafe.
+         It boils down to whether the user has to guarantee safety or
+         the function guarantees safety.
 -- TODO: Indexing tests
          Test files are using similar helper functions.
             Create centralized helper functions and then use them.
          For some unary functions, may have not coded infinite as NA
             and I have decided (for now) that +/-Inf is NA for both float
             and int.
+-- View for DateVector in indexing.rs
+-- We have defined a result type, use it for existing places where we had
+    ErebusError as return type.
 
-
--- Big Change to Make:
+-- Change to Make (Not immediate):
     For unary operators, instead of doing .is_nan() check to determine
     whether it is NA or not, use direct conditions when possible.
     This is because with the is_nan() setup, the following framework
     takes place: calc -> check -> write
     We should do this instead: check -> calc + write OR write.
     This new framework will avoid unnecessary calcs.
+    However, this framework is not straightforward. In some cases it is simpler
+    to just do the calc first and then check for simplicity.
 
 > Logit
 > Expit
 > Softplus
 > Softmax
-[-] > Flip sign
-[-] > Round up
 > Eq
 > Neq
 > Exp10
-> Trig functions
+
+> Start to end date constructor
+> Get month start date and month end date
+> Get first business day of month and last business day of month
+> Days between A Date and B date
 
 > Cumulative functions aka accumulate
 
@@ -38,10 +53,14 @@ No set format, free flowing ideas.
 > IQR
 > Weighted reductions
 > Range
+> Range constructor start end
+> Range constructor start end step
+> Range constructor by log range
 
 > Relu (and another alias)
 > Relu6 aka ReluN
 > Leaky relu
+
 > Interp
 
 > Nextpow
@@ -50,30 +69,14 @@ No set format, free flowing ideas.
 
 > Lineage like Ark
 
-[-] > Inverse divide x/y becomes y/x
-[-] > Reciprocal
-
-[-] > Concatenation of vectors
-
-[-] > L1 Norm
-[-] > L2 Norm
-[-] > Any
-[-] > All
 > Xor reduce
-[-] > Log sum exp
+
 > Interesting functions from scipy to emulate: https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.logsumexp.html
-[-] > Null ratio/percentage
-[-] > Count true
 
 > Reduce
 > Accumulate
 
-[-] > Sort (Look into radix sort)
 > Reindex (separate from reorder)
-
-> Range constructor start end
-> Range constructor start end step
-> Range constructor by log range
 
 > Upper
 > Lower
@@ -91,3 +94,19 @@ No set format, free flowing ideas.
 > Function backed columns
 > Undo operations
 > Copulas
+
+
+[-] > Null ratio/percentage
+[-] > Count true
+[-] > Sort (Look into radix sort)
+[-] > Inverse divide x/y becomes y/x
+[-] > Reciprocal
+[-] > Concatenation of vectors
+[-] > L1 Norm
+[-] > L2 Norm
+[-] > Any
+[-] > All
+[-] > Log sum exp
+[-] > Trig functions
+[-] > Flip sign
+[-] > Round up

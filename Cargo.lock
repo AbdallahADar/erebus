@@ -110,6 +110,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "erebus-time"
+version = "0.1.0"
+dependencies = [
+ "ahash",
+ "erebus-core",
+ "erebus-io",
+ "ordered-float",
+ "rand",
+ "rayon",
+ "visibility",
+]
+
+[[package]]
 name = "erebus-vector"
 version = "0.1.0"
 dependencies = [

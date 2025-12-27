@@ -9,7 +9,7 @@ pub(crate) fn write_vectordata_f64_raw<W: Write + Seek>(
     writer: &mut ErebusWriter<W>,
     values: &[f64],
     validity: &BitVec,
-) -> Result<(), ErebusError>
+) -> ErrorResult<()>
 {
     assert_eq!(values.len(), validity.len());
     let n_rows = values.len() as u64;
@@ -49,7 +49,7 @@ pub struct RawWriter<'a, W: Write + Seek> {
 }
 
 impl<'a, W: Write + Seek> RawWriter<'a, W> {
-    pub fn write(self, values: &[f64], validity: &BitVec) -> Result<(), ErebusError> {
+    pub fn write(self, values: &[f64], validity: &BitVec) -> ErrorResult<()> {
         write_vectordata_f64_raw(self.writer, values, validity)
     }
 }

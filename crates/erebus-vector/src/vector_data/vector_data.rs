@@ -49,9 +49,9 @@ impl<T: Clone + Default> VectorData<T> {
     /// Creates a new [`VectorData`] safely.
     /// Returns an error if data and validity lengths mismatch.
     #[inline]
-    pub fn from_vec(data: Vec<T>, validity: BitVec) -> Result<Self, ErebusError> {
+    pub fn from_vec(data: Vec<T>, validity: BitVec) -> ErrorResult<Self> {
         if data.len() != validity.len() {
-            return Err(ErebusError::VectorLengthMismatch {
+            return Err(ErebusError::LengthMismatch {
                 expected: data.len(),
                 found: validity.len(),
             });

@@ -57,7 +57,7 @@ fn test_from_vec_length_mismatch() {
     let data = vec![1, 2, 3];
     let validity = bitvec![1, 1]; // mismatch
     let err = VectorData::from_vec(data, validity).unwrap_err();
-    if let ErebusError::VectorLengthMismatch { expected, found } = err {
+    if let ErebusError::LengthMismatch { expected, found } = err {
         assert_eq!(expected, 3);
         assert_eq!(found, 2);
     } else {

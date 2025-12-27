@@ -45,7 +45,7 @@ impl<T: Clone + Default> Vector<T> {
     /// Constructs a new [`Vector`] safely from an existing `Vec`.
     /// Returns an error if the provided vector is empty.
     #[inline]
-    pub fn from_vec(data: Vec<T>) -> Result<Self, ErebusError> {
+    pub fn from_vec(data: Vec<T>) -> ErrorResult<Self> {
         if data.is_empty() {
             return Err(ErebusError::EmptyVector);
         }

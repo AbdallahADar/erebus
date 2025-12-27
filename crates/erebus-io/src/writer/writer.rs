@@ -30,14 +30,14 @@ impl<W: Write + Seek> ErebusWriter<W> {
     }
 
     /// Writes magic bytes + version. Always at the start of the file.
-    pub fn write_magic_and_version(&mut self) -> Result<(), ErebusError> {
+    pub fn write_magic_and_version(&mut self) -> ErrorResult<()> {
         self.inner.write_all(&EREBUS_MAGIC)?;
         self.inner.write_all(&[EREBUS_VERSION])?;
         Ok(())
     }
 
     /// Writes the `.erebus` header.
-    pub fn write_header(&mut self, header: &ErebusHeader) -> Result<(), ErebusError> {
+    pub fn write_header(&mut self, header: &ErebusHeader) -> ErrorResult<()> {
         // ObjectType
         self.inner.write_all(&[header.object_type.to_u8()])?;
 
@@ -62,13 +62,13 @@ impl<W: Write + Seek> ErebusWriter<W> {
     }
 
     /// Writes a raw byte slice (used by all column streams).
-    pub fn write_stream_bytes(&mut self, buf: &[u8]) -> Result<(), ErebusError> {
+    pub fn write_stream_bytes(&mut self, buf: &[u8]) -> ErrorResult<()> {
         self.inner.write_all(buf)?;
         Ok(())
     }
 
     /// Writes a vector of u64 (mantissas, payloads, etc.)
-    pub fn write_u64_stream(&mut self, values: &[u64]) -> Result<(), ErebusError> {
+    pub fn write_u64_stream(&mut self, values: &[u64]) -> ErrorResult<()> {
         for v in values {
             self.inner.write_all(&v.to_le_bytes())?;
         }
@@ -76,7 +76,7 @@ impl<W: Write + Seek> ErebusWriter<W> {
     }
 
     /// Writes a vector of i16 (exponent deltas).
-    pub fn write_i16_stream(&mut self, values: &[i16]) -> Result<(), ErebusError> {
+    pub fn write_i16_stream(&mut self, values: &[i16]) -> ErrorResult<()> {
         for v in values {
             self.inner.write_all(&v.to_le_bytes())?;
         }
@@ -89,7 +89,7 @@ impl<W: Write + Seek> ErebusWriter<W> {
         &mut self,
         _buf: &[u8],
         _codec: crate::compression::Compression,
-    ) -> Result<(), ErebusError> {
+    ) -> ErrorResult<()> {
         unimplemented!("Compression will be implemented later");
     }
 }

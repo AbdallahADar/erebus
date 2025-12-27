@@ -35,13 +35,13 @@ impl<W: Write + Seek> ErebusWriter<W> {
         &mut self.inner
     }
 
-    pub fn write_magic_and_version(&mut self) -> Result<(), ErebusError> {
+    pub fn write_magic_and_version(&mut self) -> ErrorResult<()> {
         self.inner.write_all(&EREBUS_MAGIC)?;
         self.inner.write_all(&[EREBUS_VERSION])?;
         Ok(())
     }
 
-    pub fn write_global_header(&mut self, header: &ErebusHeader) -> Result<(), ErebusError> {
+    pub fn write_global_header(&mut self, header: &ErebusHeader) -> ErrorResult<()> {
         // MUST match ErebusReader::read_global_header
         self.inner.write_all(&[header.object_type.to_u8()])?;
         self.inner.write_all(&[header.base_type.to_u8()])?;
@@ -50,26 +50,26 @@ impl<W: Write + Seek> ErebusWriter<W> {
         Ok(())
     }
 
-    pub fn write_bytes(&mut self, buf: &[u8]) -> Result<(), ErebusError> {
+    pub fn write_bytes(&mut self, buf: &[u8]) -> ErrorResult<()> {
         self.inner.write_all(buf)?;
         Ok(())
     }
 
-    pub fn write_u64_stream(&mut self, values: &[u64]) -> Result<(), ErebusError> {
+    pub fn write_u64_stream(&mut self, values: &[u64]) -> ErrorResult<()> {
         for v in values {
             self.inner.write_all(&v.to_le_bytes())?;
         }
         Ok(())
     }
 
-    pub fn write_i16_stream(&mut self, values: &[i16]) -> Result<(), ErebusError> {
+    pub fn write_i16_stream(&mut self, values: &[i16]) -> ErrorResult<()> {
         for v in values {
             self.inner.write_all(&v.to_le_bytes())?;
         }
         Ok(())
     }
 
-    pub fn write_validity(&mut self, bitmap: &[u8]) -> Result<(), ErebusError> {
+    pub fn write_validity(&mut self, bitmap: &[u8]) -> ErrorResult<()> {
         self.inner.write_all(bitmap)?;
         Ok(())
     }
@@ -77,7 +77,7 @@ impl<W: Write + Seek> ErebusWriter<W> {
 
     /// Write an arbitrary byte stream, applying the writer's compression policy.
     /// For compressed modes, we prefix the compressed block with its length as u64.
-    pub fn write_stream_bytes(&mut self, buf: &[u8]) -> Result<(), ErebusError> {
+    pub fn write_stream_bytes(&mut self, buf: &[u8]) -> ErrorResult<()> {
         match self.compression {
             CompressionType::None => self.write_bytes(buf),
 
@@ -100,7 +100,7 @@ impl<W: Write + Seek> ErebusWriter<W> {
         }
     }
 
-    pub fn write_stream_i16(&mut self, values: &[i16]) -> Result<(), ErebusError> {
+    pub fn write_stream_i16(&mut self, values: &[i16]) -> ErrorResult<()> {
         let mut buf = Vec::with_capacity(values.len() * 2);
         for v in values {
             buf.extend_from_slice(&v.to_le_bytes());
@@ -108,7 +108,7 @@ impl<W: Write + Seek> ErebusWriter<W> {
         self.write_stream_bytes(&buf)
     }
 
-    pub fn write_stream_u64(&mut self, values: &[u64]) -> Result<(), ErebusError> {
+    pub fn write_stream_u64(&mut self, values: &[u64]) -> ErrorResult<()> {
         let mut buf = Vec::with_capacity(values.len() * 8);
         for v in values {
             buf.extend_from_slice(&v.to_le_bytes());

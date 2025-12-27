@@ -16,8 +16,9 @@ fn test_is_valid_at_out_of_bounds_error() {
     let v = VectorData::from_vec(vec![10, 20], bitvec![1, 0]).unwrap();
     let result = v.is_valid_at(3);
     assert!(result.is_err());
-    if let Err(ErebusError::IndexOutOfBounds(i)) = result {
-        assert_eq!(i, 3);
+    if let Err(ErebusError::IndexOutOfBounds { index, size }) = result {
+        assert_eq!(index, 3);
+        assert_eq!(size, 2);
     } else {
         panic!("Unexpected error type");
     }

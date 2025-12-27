@@ -4,7 +4,7 @@ use lz4_flex::{compress_prepend_size, decompress_size_prepended};
 
 // === Impl ===
 
-pub fn zstd_compress(input: &[u8]) -> Result<Vec<u8>, ErebusError> {
+pub fn zstd_compress(input: &[u8]) -> ErrorResult<Vec<u8>> {
     zstd::encode_all(input, 0)
         .map_err(|e| ErebusError::IoError(
             std::io::Error::new(
@@ -16,7 +16,7 @@ pub fn zstd_compress(input: &[u8]) -> Result<Vec<u8>, ErebusError> {
 
 /// ZSTD decompression using the `zstd` crate.
 /// Automatically detects the uncompressed size from the Zstd frame header.
-pub fn zstd_decompress(input: &[u8]) -> Result<Vec<u8>, ErebusError> {
+pub fn zstd_decompress(input: &[u8]) -> ErrorResult<Vec<u8>> {
     zstd::decode_all(input)
         .map_err(|e| ErebusError::IoError(
             std::io::Error::new(
@@ -28,13 +28,13 @@ pub fn zstd_decompress(input: &[u8]) -> Result<Vec<u8>, ErebusError> {
 
 /// LZ4 compression with size prefix.
 /// Very fast, lower ratio than zstd.
-pub fn lz4_compress(input: &[u8]) -> Result<Vec<u8>, ErebusError> {
+pub fn lz4_compress(input: &[u8]) -> ErrorResult<Vec<u8>> {
     Ok(compress_prepend_size(input))
 }
 
 /// LZ4 decompression.
 /// Expects lz4_flex's size-prepended format.
-pub fn lz4_decompress(input: &[u8]) -> Result<Vec<u8>, ErebusError> {
+pub fn lz4_decompress(input: &[u8]) -> ErrorResult<Vec<u8>> {
     decompress_size_prepended(input)
         .map_err(|e| ErebusError::IoError(
             std::io::Error::new(std::io::ErrorKind::Other,

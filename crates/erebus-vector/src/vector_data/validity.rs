@@ -18,9 +18,12 @@ impl<T> VectorData<T> {
     /// Returns whether the value at index `i` is valid (non-null).
     /// Returns an error if `i` is out of bounds.
     #[inline]
-    pub fn is_valid_at(&self, i: usize) -> Result<bool, ErebusError> {
+    pub fn is_valid_at(&self, i: usize) -> ErrorResult<bool> {
         if i >= self.validity.len() {
-            return Err(ErebusError::IndexOutOfBounds(i));
+            return Err(ErebusError::IndexOutOfBounds {
+                index: i,
+                size: self.validity.len(),
+            });
         }
         Ok(self._is_valid_at(i))
     }
@@ -38,9 +41,9 @@ impl<T> VectorData<T> {
     /// Safe wrapper for setting validity bitmap in place.
     /// Returns an error if lengths mismatch.
     #[inline]
-    pub fn set_validity(&mut self, validity: BitVec) -> Result<(), ErebusError> {
+    pub fn set_validity(&mut self, validity: BitVec) -> ErrorResult<()> {
         if self.data.len() != validity.len() {
-            return Err(ErebusError::VectorLengthMismatch {
+            return Err(ErebusError::LengthMismatch {
                 expected: self.data.len(),
                 found: validity.len(),
             });
@@ -61,9 +64,9 @@ impl<T> VectorData<T> {
 
     /// Functional style: returns new [`VectorData`] with updated validity.
     #[inline]
-    pub fn with_validity(mut self, validity: BitVec) -> Result<Self, ErebusError> {
+    pub fn with_validity(mut self, validity: BitVec) -> ErrorResult<Self> {
         if self.data.len() != validity.len() {
-            return Err(ErebusError::VectorLengthMismatch {
+            return Err(ErebusError::LengthMismatch {
                 expected: self.data.len(),
                 found: validity.len(),
             });
